@@ -1,0 +1,14 @@
+export { Role } from './role.entity';
+export { Usuario } from './usuario.entity';
+export { Tipo } from './tipo.entity';
+export { Habilidad } from './habilidad.entity';
+export { Pokemon } from './pokemon.entity';
+export { PokemonHabilidad } from './pokemon-habilidad.entity';
+export { Item } from './item.entity';
+export { CategoriaMovimiento } from './categoria-movimiento.entity';
+export { Movimiento } from './movimiento.entity';
+export { PokemonMovimiento } from './pokemon-movimiento.entity';
+export { Naturaleza } from './naturaleza.entity';
+export { Equipo } from './equipo.entity';
+export { EquipoPokemon } from './equipo-pokemon.entity';
+export { EquipoPokemonMovimiento } from './equipo-pokemon-movimiento.entity';
