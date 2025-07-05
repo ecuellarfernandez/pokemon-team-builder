@@ -1,0 +1,1064 @@
+{
+	"info": {
+		"_postman_id": "pokemon-team-builder-api",
+		"name": "Pokemon Team Builder API",
+		"description": "Colección completa para probar la API de Pokemon Team Builder",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('accessToken', response.access_token);",
+									"    pm.environment.set('userId', response.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/profile",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Pokemon",
+			"item": [
+				{
+					"name": "Get All Pokemon",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pokemon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon"
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Pokemon by Name",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pokemon?name=pikachu",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "pikachu"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Pokemon (Autocomplete)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pokemon/search?name=pika",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon",
+								"search"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "pika"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Pokemon by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pokemon/{{pokemonId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon",
+								"{{pokemonId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Pokemon (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Pikachu\",\n  \"type_1_id\": \"electric-type-id\",\n  \"type_2_id\": null,\n  \"base_hp\": 35,\n  \"base_atk\": 55,\n  \"base_def\": 40,\n  \"base_spa\": 50,\n  \"base_spd\": 50,\n  \"base_spe\": 90,\n  \"image_url\": \"https://example.com/pikachu.png\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pokemon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Pokemon (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Pikachu Updated\",\n  \"base_hp\": 40\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pokemon/{{pokemonId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon",
+								"{{pokemonId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Pokemon (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pokemon/{{pokemonId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pokemon",
+								"{{pokemonId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Items",
+			"item": [
+				{
+					"name": "Get All Items",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/item",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"item"
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Items by Name",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/item?name=pokeball",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"item"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "pokeball"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Items (Autocomplete)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/item/search?name=poke",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"item",
+								"search"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "poke"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Item by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/item/{{itemId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"item",
+								"{{itemId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Item (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Pokeball\",\n  \"description\": \"A device for catching wild Pokémon\",\n  \"image_url\": \"https://example.com/pokeball.png\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/item",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"item"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Item (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/item/{{itemId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"item",
+								"{{itemId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Item (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/item/{{itemId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"item",
+								"{{itemId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Movimientos",
+			"item": [
+				{
+					"name": "Get All Movimientos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/movimiento",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movimiento"
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Movimientos by Name",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/movimiento?name=tackle",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movimiento"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "tackle"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Movimientos (Autocomplete)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/movimiento/search?name=tack",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movimiento",
+								"search"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "tack"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Movimiento by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/movimiento/{{movimientoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movimiento",
+								"{{movimientoId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Movimiento (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Tackle\",\n  \"type_id\": \"normal-type-id\",\n  \"categoria_id\": \"physical-category-id\",\n  \"power\": 40,\n  \"accuracy\": 100,\n  \"pp\": 35,\n  \"description\": \"A physical attack in which the user charges and slams into the target with its whole body.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/movimiento",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movimiento"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Movimiento (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"power\": 50\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/movimiento/{{movimientoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movimiento",
+								"{{movimientoId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Movimiento (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/movimiento/{{movimientoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"movimiento",
+								"{{movimientoId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Equipos",
+			"item": [
+				{
+					"name": "Create Equipo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Mi Equipo Competitivo\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/equipo",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"equipo"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get My Equipos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/equipo",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"equipo"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Equipo by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/equipo/{{equipoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"equipo",
+								"{{equipoId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Equipo",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Mi Equipo Actualizado\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/equipo/{{equipoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"equipo",
+								"{{equipoId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Equipo",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/equipo/{{equipoId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"equipo",
+								"{{equipoId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Add Pokemon to Equipo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pokemon_id\": \"{{pokemonId}}\",\n  \"item_id\": \"{{itemId}}\",\n  \"habilidad_id\": \"ability-id\",\n  \"nature_id\": \"nature-id\",\n  \"nickname\": \"Pika\",\n  \"ev_hp\": 252,\n  \"ev_atk\": 0,\n  \"ev_def\": 0,\n  \"ev_spa\": 252,\n  \"ev_spd\": 4,\n  \"ev_spe\": 0,\n  \"iv_hp\": 31,\n  \"iv_atk\": 0,\n  \"iv_def\": 31,\n  \"iv_spa\": 31,\n  \"iv_spd\": 31,\n  \"iv_spe\": 31,\n  \"nivel\": 50,\n  \"movimiento_ids\": [\"{{movimientoId}}\", \"move-id-2\", \"move-id-3\", \"move-id-4\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/equipo/{{equipoId}}/pokemon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"equipo",
+								"{{equipoId}}",
+								"pokemon"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Pokemon in Equipo",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nickname\": \"Pika Updated\",\n  \"ev_hp\": 200,\n  \"nivel\": 100\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/equipo/{{equipoId}}/pokemon/{{equipoPokemonId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"equipo",
+								"{{equipoId}}",
+								"pokemon",
+								"{{equipoPokemonId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove Pokemon from Equipo",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/equipo/{{equipoId}}/pokemon/{{equipoPokemonId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"equipo",
+								"{{equipoId}}",
+								"pokemon",
+								"{{equipoPokemonId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Usuarios (Admin)",
+			"item": [
+				{
+					"name": "Get All Usuarios",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/usuario",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuario"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Usuario by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/usuario/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuario",
+								"{{userId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Usuario",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"role_id\": \"user-role-id\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuario",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuario"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Usuario",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"updated@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/usuario/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuario",
+								"{{userId}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Usuario",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/usuario/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuario",
+								"{{userId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Get Health Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								""
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "equipoId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "pokemonId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "itemId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "movimientoId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "equipoPokemonId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
