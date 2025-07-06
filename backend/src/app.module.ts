@@ -12,6 +12,10 @@ import { ItemModule } from './item/item.module';
 import { UsuarioModule } from './usuario/usuario.module';
 import { EquipoModule } from './equipo/equipo.module';
 import { UploadModule } from './upload/upload.module';
+import { HabilidadModule } from './habilidad/habilidad.module';
+import { TipoModule } from './tipo/tipo.module';
+import { NaturalezaModule } from './naturaleza/naturaleza.module';
+import { CategoriaMovimientoModule } from './categoria-movimiento/categoria-movimiento.module';
 import { typeOrmConfig } from './config/typeorm.config';
 
 @Module({
@@ -35,6 +39,10 @@ import { typeOrmConfig } from './config/typeorm.config';
     UsuarioModule,
     EquipoModule,
     UploadModule,
+    HabilidadModule,
+    TipoModule,
+    NaturalezaModule,
+    CategoriaMovimientoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
