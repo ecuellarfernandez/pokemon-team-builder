@@ -65,15 +65,7 @@ export class AuthService {
     };
     const access_token = this.jwtService.sign(payload);
 
-    return {
-      access_token,
-      user: {
-        id: usuario.id,
-        username: usuario.username,
-        email: usuario.email,
-        role: userRole.name,
-      },
-    };
+    return { access_token };
   }
 
   async login(loginDto: LoginDto) {
@@ -106,15 +98,7 @@ export class AuthService {
     };
     const access_token = this.jwtService.sign(payload);
 
-    return {
-      access_token,
-      user: {
-        id: usuario.id,
-        username: usuario.username,
-        email: usuario.email,
-        role: usuario.role.name,
-      },
-    };
+    return { access_token };
   }
 
   async validateUser(userId: string) {
