@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -9,27 +11,22 @@ import { MovimientoModule } from './movimiento/movimiento.module';
 import { ItemModule } from './item/item.module';
 import { UsuarioModule } from './usuario/usuario.module';
 import { EquipoModule } from './equipo/equipo.module';
-import * as entities from './entities';
+import { UploadModule } from './upload/upload.module';
+import { typeOrmConfig } from './config/typeorm.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get<string>('DB_USERNAME', 'postgres'),
-        password: configService.get<string>('DB_PASSWORD', 'password'),
-        database: configService.get<string>('DB_NAME', 'pokemon_team_builder'),
-        entities: Object.values(entities),
-        synchronize: configService.get<string>('NODE_ENV') !== 'production',
-        logging: configService.get<string>('NODE_ENV') === 'development',
-      }),
+      useFactory: typeOrmConfig,
     }),
     AuthModule,
     PokemonModule,
@@ -37,6 +34,7 @@ import * as entities from './entities';
     ItemModule,
     UsuarioModule,
     EquipoModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
