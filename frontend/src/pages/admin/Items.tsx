@@ -432,8 +432,7 @@ const Items: React.FC = () => {
         message="¿Estás seguro de que quieres eliminar este item? Esta acción no se puede deshacer."
         confirmText="Eliminar"
         cancelText="Cancelar"
-        type="danger"
-        isLoading={isDeleting}
+        loading={isDeleting}
       />
     </div>
   );

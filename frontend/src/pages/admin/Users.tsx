@@ -28,12 +28,6 @@ interface CreateUserData {
   role_id: string;
 }
 
-interface UpdateUserData {
-  username?: string;
-  email?: string;
-  role_id?: string;
-}
-
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -838,8 +832,7 @@ const Users: React.FC = () => {
         message="¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer."
         confirmText="Eliminar"
         cancelText="Cancelar"
-        type="danger"
-        isLoading={isDeleting}
+        loading={isDeleting}
       />
 
       {/* Toggle Admin Access Confirmation Dialog */}
@@ -857,8 +850,7 @@ const Users: React.FC = () => {
         }
         confirmText={userToToggleAdmin?.role?.name === 'admin' ? 'Quitar Admin' : 'Hacer Admin'}
         cancelText="Cancelar"
-        type={userToToggleAdmin?.role?.name === 'admin' ? 'warning' : 'primary'}
-        isLoading={isTogglingAdmin}
+        loading={isTogglingAdmin}
       />
     </div>
   );
