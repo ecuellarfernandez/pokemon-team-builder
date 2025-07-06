@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, Package } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { API_CONFIG, getAuthHeadersForFormData } from '../../config/api';
+import Modal from '../../components/ui/Modal';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 interface Item {
   id: string;
@@ -30,6 +32,9 @@ const Items: React.FC = () => {
     image: null
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   
 
@@ -117,13 +122,17 @@ const Items: React.FC = () => {
     }
   };
 
-  const deleteItem = async (itemId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este item?')) {
-      return;
-    }
+  const openDeleteConfirm = (itemId: string) => {
+    setItemToDelete(itemId);
+    setShowDeleteConfirm(true);
+  };
+
+  const deleteItem = async () => {
+    if (!itemToDelete) return;
     
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/item/${itemId}`, {
+      setIsDeleting(true);
+      const response = await fetch(`${API_CONFIG.BASE_URL}/item/${itemToDelete}`, {
         method: 'DELETE',
         headers: getAuthHeadersForFormData()
       });
@@ -134,9 +143,13 @@ const Items: React.FC = () => {
       
       toast.success('Item eliminado exitosamente');
       fetchItems();
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
     } catch (error) {
       console.error('Error deleting item:', error);
       toast.error('Error al eliminar item');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -239,7 +252,7 @@ const Items: React.FC = () => {
                   <Edit className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => deleteItem(item.id)}
+                  onClick={() => openDeleteConfirm(item.id)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -258,147 +271,170 @@ const Items: React.FC = () => {
       )}
 
       {/* Create Item Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Crear Nuevo Item</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ingresa el nombre del item"
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+          resetForm();
+        }}
+        title="Crear Nuevo Item"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ingresa el nombre del item"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Descripción
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ingresa la descripción del item"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Imagen
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {imagePreview && (
+              <div className="mt-2">
+                <img
+                  src={imagePreview.startsWith('data:') ? imagePreview : `${API_CONFIG.BASE_URL}${imagePreview}`}
+                  alt="Preview"
+                  className="h-32 w-32 object-cover rounded-md border"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Descripción
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ingresa la descripción del item"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Imagen
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                {imagePreview && (
-                  <div className="mt-2">
-                    <img
-                      src={`${API_CONFIG.BASE_URL}${imagePreview}`}
-                      alt="Preview"
-                      className="h-32 w-32 object-cover rounded-md border"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  resetForm();
-                }}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={createItem}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Crear Item
-              </button>
-            </div>
+            )}
           </div>
         </div>
-      )}
+        <div className="flex justify-end space-x-3 mt-6">
+          <button
+            onClick={() => {
+              setShowCreateModal(false);
+              resetForm();
+            }}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={createItem}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Crear Item
+          </button>
+        </div>
+      </Modal>
 
       {/* Edit Item Modal */}
-      {showEditModal && selectedItem && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Editar Item</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedItem(null);
+          resetForm();
+        }}
+        title="Editar Item"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Descripción
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Imagen
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {imagePreview && (
+              <div className="mt-2">
+                <img
+                  src={imagePreview.startsWith('data:') ? imagePreview : `${API_CONFIG.BASE_URL}${imagePreview}`}
+                  alt="Preview"
+                  className="h-32 w-32 object-cover rounded-md border"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Descripción
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Imagen
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                {imagePreview && (
-                  <div className="mt-2">
-                    <img
-                      src={`${API_CONFIG.BASE_URL}${imagePreview}`}
-                      alt="Preview"
-                      className="h-32 w-32 object-cover rounded-md border"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setSelectedItem(null);
-                  resetForm();
-                }}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={updateItem}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Actualizar Item
-              </button>
-            </div>
+            )}
           </div>
         </div>
-      )}
+        <div className="flex justify-end space-x-3 mt-6">
+          <button
+            onClick={() => {
+              setShowEditModal(false);
+              setSelectedItem(null);
+              resetForm();
+            }}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={updateItem}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Actualizar Item
+          </button>
+        </div>
+      </Modal>
+
+      {/* Delete Item Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setItemToDelete(null);
+        }}
+        onConfirm={deleteItem}
+        title="Eliminar Item"
+        message="¿Estás seguro de que quieres eliminar este item? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

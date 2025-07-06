@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Search, User, Shield, Key } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { API_CONFIG, getAuthHeaders } from '../../config/api';
+import Modal from '../../components/ui/Modal';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 
 interface Role {
   id: string;
@@ -39,7 +41,13 @@ const Users: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showToggleAdminConfirm, setShowToggleAdminConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [userToToggleAdmin, setUserToToggleAdmin] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isTogglingAdmin, setIsTogglingAdmin] = useState(false);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loadingRoles, setLoadingRoles] = useState(true);
   const [formData, setFormData] = useState<CreateUserData>({
@@ -54,8 +62,6 @@ const Users: React.FC = () => {
     confirmPassword: ''
   });
   const [passwordErrors, setPasswordErrors] = useState<{newPassword?: string; confirmPassword?: string}>({});
-
-
 
   const fetchUsers = async () => {
     try {
@@ -212,13 +218,17 @@ const Users: React.FC = () => {
     }
   };
 
-  const deleteUser = async (userId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este usuario?')) {
-      return;
-    }
+  const openDeleteConfirm = (userId: string) => {
+    setUserToDelete(userId);
+    setShowDeleteConfirm(true);
+  };
+
+  const deleteUser = async () => {
+    if (!userToDelete) return;
     
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/usuario/${userId}`, {
+      setIsDeleting(true);
+      const response = await fetch(`${API_CONFIG.BASE_URL}/usuario/${userToDelete}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
@@ -229,9 +239,13 @@ const Users: React.FC = () => {
       
       toast.success('Usuario eliminado exitosamente');
       fetchUsers();
+      setShowDeleteConfirm(false);
+      setUserToDelete(null);
     } catch (error) {
       console.error('Error deleting user:', error);
       toast.error('Error al eliminar usuario');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -254,8 +268,16 @@ const Users: React.FC = () => {
     setShowChangePasswordModal(true);
   };
 
-  const toggleAdminAccess = async (user: User) => {
+  const openToggleAdminConfirm = (user: User) => {
+    setUserToToggleAdmin(user);
+    setShowToggleAdminConfirm(true);
+  };
+
+  const toggleAdminAccess = async () => {
+    if (!userToToggleAdmin) return;
+    
     try {
+      setIsTogglingAdmin(true);
       const adminRole = roles.find(role => role.name === 'admin');
       const userRole = roles.find(role => role.name === 'user');
       
@@ -264,9 +286,9 @@ const Users: React.FC = () => {
         return;
       }
       
-      const newRoleId = user.role?.name === 'admin' ? userRole.id : adminRole.id;
+      const newRoleId = userToToggleAdmin.role?.name === 'admin' ? userRole.id : adminRole.id;
       
-      const response = await fetch(`${API_CONFIG.BASE_URL}/usuario/${user.id}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/usuario/${userToToggleAdmin.id}`, {
         method: 'PATCH',
         headers: {
           ...getAuthHeaders(),
@@ -276,9 +298,11 @@ const Users: React.FC = () => {
       });
       
       if (response.ok) {
-        const action = user.role?.name === 'admin' ? 'removido' : 'otorgado';
+        const action = userToToggleAdmin.role?.name === 'admin' ? 'removido' : 'otorgado';
         toast.success(`Acceso de administrador ${action} exitosamente`);
         fetchUsers();
+        setShowToggleAdminConfirm(false);
+        setUserToToggleAdmin(null);
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || 'Error al cambiar el acceso de administrador');
@@ -286,6 +310,8 @@ const Users: React.FC = () => {
     } catch (error) {
       console.error('Error toggling admin access:', error);
       toast.error('Error al cambiar el acceso de administrador');
+    } finally {
+      setIsTogglingAdmin(false);
     }
   };
 
@@ -462,7 +488,7 @@ const Users: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex items-center justify-end space-x-2">
                     <button
-                      onClick={() => toggleAdminAccess(user)}
+                      onClick={() => openToggleAdminConfirm(user)}
                       className={`px-2 py-1 text-xs rounded ${
                         user.role?.name === 'admin'
                           ? 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -487,7 +513,7 @@ const Users: React.FC = () => {
                       <Edit className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => deleteUser(user.id)}
+                      onClick={() => openDeleteConfirm(user.id)}
                       className="text-red-600 hover:text-red-900"
                       title="Eliminar usuario"
                     >
@@ -509,280 +535,331 @@ const Users: React.FC = () => {
       </div>
 
       {/* Create User Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Crear Nuevo Usuario</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre de Usuario
-                </label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.username ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Ingresa el nombre de usuario"
-                />
-                {errors.username && (
-                  <p className="text-red-500 text-xs mt-1">{errors.username}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Ingresa el email"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contraseña
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.password ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Ingresa la contraseña"
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Rol
-                </label>
-                <select
-                  value={formData.role_id}
-                  onChange={(e) => setFormData({ ...formData, role_id: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.role_id ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  disabled={loadingRoles}
-                >
-                  <option value="">Selecciona un rol</option>
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name === 'admin' ? 'Administrador' : 'Usuario'}
-                    </option>
-                  ))}
-                </select>
-                {errors.role_id && (
-                  <p className="text-red-500 text-xs mt-1">{errors.role_id}</p>
-                )}
-                {loadingRoles && (
-                  <p className="text-gray-500 text-xs mt-1">Cargando roles...</p>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  setFormData({ username: '', email: '', password: '', role_id: roles.length > 0 ? roles[0].id : '' });
-                  setErrors({});
-                }}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={createUser}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Crear Usuario
-              </button>
-            </div>
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => {
+          setShowCreateModal(false);
+          setFormData({ username: '', email: '', password: '', role_id: roles.length > 0 ? roles[0].id : '' });
+          setErrors({});
+        }}
+        title="Crear Nuevo Usuario"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre de Usuario
+            </label>
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.username ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="Ingresa el nombre de usuario"
+            />
+            {errors.username && (
+              <p className="text-red-500 text-xs mt-1">{errors.username}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.email ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="Ingresa el email"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contraseña
+            </label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.password ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="Ingresa la contraseña"
+            />
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Rol
+            </label>
+            <select
+              value={formData.role_id}
+              onChange={(e) => setFormData({ ...formData, role_id: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.role_id ? 'border-red-300' : 'border-gray-300'
+              }`}
+              disabled={loadingRoles}
+            >
+              <option value="">Selecciona un rol</option>
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name === 'admin' ? 'Administrador' : 'Usuario'}
+                </option>
+              ))}
+            </select>
+            {errors.role_id && (
+              <p className="text-red-500 text-xs mt-1">{errors.role_id}</p>
+            )}
+            {loadingRoles && (
+              <p className="text-gray-500 text-xs mt-1">Cargando roles...</p>
+            )}
           </div>
         </div>
-      )}
+        <div className="flex justify-end space-x-3 mt-6">
+          <button
+            onClick={() => {
+              setShowCreateModal(false);
+              setFormData({ username: '', email: '', password: '', role_id: roles.length > 0 ? roles[0].id : '' });
+              setErrors({});
+            }}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={createUser}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Crear Usuario
+          </button>
+        </div>
+      </Modal>
 
       {/* Edit User Modal */}
-      {showEditModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Editar Usuario</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre de Usuario
-                </label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.username ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                />
-                {errors.username && (
-                  <p className="text-red-500 text-xs mt-1">{errors.username}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contraseña (opcional)
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.password ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Dejar vacío para mantener la actual"
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Rol
-                </label>
-                <select
-                  value={formData.role_id}
-                  onChange={(e) => setFormData({ ...formData, role_id: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.role_id ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  disabled={loadingRoles}
-                >
-                  <option value="">Selecciona un rol</option>
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name === 'admin' ? 'Administrador' : 'Usuario'}
-                    </option>
-                  ))}
-                </select>
-                {errors.role_id && (
-                  <p className="text-red-500 text-xs mt-1">{errors.role_id}</p>
-                )}
-                {loadingRoles && (
-                  <p className="text-gray-500 text-xs mt-1">Cargando roles...</p>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowEditModal(false);
-                  setSelectedUser(null);
-                  setFormData({ username: '', email: '', password: '', role_id: roles.length > 0 ? roles[0].id : '' });
-                  setErrors({});
-                }}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={updateUser}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Actualizar Usuario
-              </button>
-            </div>
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedUser(null);
+          setFormData({ username: '', email: '', password: '', role_id: roles.length > 0 ? roles[0].id : '' });
+          setErrors({});
+        }}
+        title="Editar Usuario"
+        size="md"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nombre de Usuario
+            </label>
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.username ? 'border-red-300' : 'border-gray-300'
+              }`}
+            />
+            {errors.username && (
+              <p className="text-red-500 text-xs mt-1">{errors.username}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.email ? 'border-red-300' : 'border-gray-300'
+              }`}
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Contraseña (opcional)
+            </label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.password ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="Dejar vacío para mantener la actual"
+            />
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Rol
+            </label>
+            <select
+              value={formData.role_id}
+              onChange={(e) => setFormData({ ...formData, role_id: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.role_id ? 'border-red-300' : 'border-gray-300'
+              }`}
+              disabled={loadingRoles}
+            >
+              <option value="">Selecciona un rol</option>
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name === 'admin' ? 'Administrador' : 'Usuario'}
+                </option>
+              ))}
+            </select>
+            {errors.role_id && (
+              <p className="text-red-500 text-xs mt-1">{errors.role_id}</p>
+            )}
+            {loadingRoles && (
+              <p className="text-gray-500 text-xs mt-1">Cargando roles...</p>
+            )}
           </div>
         </div>
-      )}
+        <div className="flex justify-end space-x-3 mt-6">
+          <button
+            onClick={() => {
+              setShowEditModal(false);
+              setSelectedUser(null);
+              setFormData({ username: '', email: '', password: '', role_id: roles.length > 0 ? roles[0].id : '' });
+              setErrors({});
+            }}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={updateUser}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Actualizar Usuario
+          </button>
+        </div>
+      </Modal>
 
       {/* Change Password Modal */}
-      {showChangePasswordModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Cambiar Contraseña</h2>
-            <p className="text-gray-600 mb-4">Usuario: <span className="font-medium">{selectedUser.username}</span></p>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nueva Contraseña
-                </label>
-                <input
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    passwordErrors.newPassword ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Ingresa la nueva contraseña"
-                />
-                {passwordErrors.newPassword && (
-                  <p className="text-red-500 text-xs mt-1">{passwordErrors.newPassword}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirmar Contraseña
-                </label>
-                <input
-                  type="password"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    passwordErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Confirma la nueva contraseña"
-                />
-                {passwordErrors.confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1">{passwordErrors.confirmPassword}</p>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowChangePasswordModal(false);
-                  setSelectedUser(null);
-                  setPasswordData({ newPassword: '', confirmPassword: '' });
-                  setPasswordErrors({});
-                }}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={changePassword}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Cambiar Contraseña
-              </button>
-            </div>
+      <Modal
+        isOpen={showChangePasswordModal}
+        onClose={() => {
+          setShowChangePasswordModal(false);
+          setSelectedUser(null);
+          setPasswordData({ newPassword: '', confirmPassword: '' });
+          setPasswordErrors({});
+        }}
+        title="Cambiar Contraseña"
+        size="md"
+      >
+        {selectedUser && (
+          <p className="text-gray-600 mb-4">Usuario: <span className="font-medium">{selectedUser.username}</span></p>
+        )}
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nueva Contraseña
+            </label>
+            <input
+              type="password"
+              value={passwordData.newPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                passwordErrors.newPassword ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="Ingresa la nueva contraseña"
+            />
+            {passwordErrors.newPassword && (
+              <p className="text-red-500 text-xs mt-1">{passwordErrors.newPassword}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Confirmar Contraseña
+            </label>
+            <input
+              type="password"
+              value={passwordData.confirmPassword}
+              onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+              className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                passwordErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="Confirma la nueva contraseña"
+            />
+            {passwordErrors.confirmPassword && (
+              <p className="text-red-500 text-xs mt-1">{passwordErrors.confirmPassword}</p>
+            )}
           </div>
         </div>
-      )}
+        <div className="flex justify-end space-x-3 mt-6">
+          <button
+            onClick={() => {
+              setShowChangePasswordModal(false);
+              setSelectedUser(null);
+              setPasswordData({ newPassword: '', confirmPassword: '' });
+              setPasswordErrors({});
+            }}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={changePassword}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Cambiar Contraseña
+          </button>
+        </div>
+      </Modal>
+
+      {/* Delete User Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={deleteUser}
+        title="Eliminar Usuario"
+        message="¿Estás seguro de que quieres eliminar este usuario? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+        isLoading={isDeleting}
+      />
+
+      {/* Toggle Admin Access Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showToggleAdminConfirm}
+        onClose={() => {
+          setShowToggleAdminConfirm(false);
+          setUserToToggleAdmin(null);
+        }}
+        onConfirm={toggleAdminAccess}
+        title={userToToggleAdmin?.role?.name === 'admin' ? 'Quitar Acceso de Administrador' : 'Otorgar Acceso de Administrador'}
+        message={userToToggleAdmin?.role?.name === 'admin' 
+          ? `¿Estás seguro de que quieres quitar el acceso de administrador a ${userToToggleAdmin?.username}?`
+          : `¿Estás seguro de que quieres otorgar acceso de administrador a ${userToToggleAdmin?.username}?`
+        }
+        confirmText={userToToggleAdmin?.role?.name === 'admin' ? 'Quitar Admin' : 'Hacer Admin'}
+        cancelText="Cancelar"
+        type={userToToggleAdmin?.role?.name === 'admin' ? 'warning' : 'primary'}
+        isLoading={isTogglingAdmin}
+      />
     </div>
   );
 };
