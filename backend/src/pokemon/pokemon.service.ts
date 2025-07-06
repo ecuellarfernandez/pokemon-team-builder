@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { Pokemon } from '../entities';
 import { CreatePokemonDto } from '../dto/pokemon/create-pokemon.dto';
 import { UpdatePokemonDto } from '../dto/pokemon/update-pokemon.dto';
@@ -17,13 +17,20 @@ export class PokemonService {
     return await this.pokemonRepository.save(pokemon);
   }
 
-  async findAll(name?: string): Promise<Pokemon[]> {
-    const whereCondition = name ? { name: Like(`%${name}%`) } : {};
-    return await this.pokemonRepository.find({
+  async findAll(name?: string): Promise<any[]> {
+    const whereCondition = name ? { name: ILike(`%${name}%`) } : {};
+    const pokemons = await this.pokemonRepository.find({
       where: whereCondition,
       relations: ['type1', 'type2'],
       order: { name: 'ASC' },
     });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return pokemons.map(({ type_1_id, type_2_id, type1, type2, ...rest }) => ({
+      ...rest,
+      type1: type1 ? { id: type1.id, name: type1.name } : null,
+      type2: type2 ? { id: type2.id, name: type2.name } : null,
+    }));
   }
 
   async findOne(id: string): Promise<Pokemon> {
@@ -60,11 +67,18 @@ export class PokemonService {
     await this.pokemonRepository.remove(pokemon);
   }
 
-  async findByName(name: string): Promise<Pokemon[]> {
-    return await this.pokemonRepository.find({
-      where: { name: Like(`%${name}%`) },
+  async findByName(name: string): Promise<any[]> {
+    const pokemons = await this.pokemonRepository.find({
+      where: { name: ILike(`%${name}%`) },
       relations: ['type1', 'type2'],
       take: 10, // Límite para autocompletado
     });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return pokemons.map(({ type_1_id, type_2_id, type1, type2, ...rest }) => ({
+      ...rest,
+      type1: type1 ? { id: type1.id, name: type1.name } : null,
+      type2: type2 ? { id: type2.id, name: type2.name } : null,
+    }));
   }
 }

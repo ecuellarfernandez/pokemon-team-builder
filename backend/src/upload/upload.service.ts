@@ -84,9 +84,7 @@ export class UploadService {
 
       await fs.writeFile(filePath, file.buffer);
 
-      const baseUrl =
-        this.configService.get<string>('BASE_URL') || 'http://localhost:3000';
-      const fileUrl = `${baseUrl}/uploads/${category}/${filename}`;
+      const fileUrl = `/uploads/${category}/${filename}`;
 
       return {
         filename,
@@ -116,7 +114,7 @@ export class UploadService {
     createPokemonDto: CreatePokemonDto,
     imageFile?: Express.Multer.File,
   ): Promise<Pokemon> {
-    let imageUrl = createPokemonDto.image_url;
+    let imageUrl = '';
 
     if (imageFile) {
       const uploadResult = await this.uploadPokemonImage(imageFile);
@@ -145,7 +143,7 @@ export class UploadService {
       throw new BadRequestException(`Pokemon with ID ${id} not found`);
     }
 
-    let imageUrl = updatePokemonDto.image_url;
+    let imageUrl = '';
 
     if (imageFile) {
       // Eliminar imagen anterior si existe
@@ -171,7 +169,7 @@ export class UploadService {
     createItemDto: CreateItemDto,
     imageFile?: Express.Multer.File,
   ): Promise<Item> {
-    let imageUrl = createItemDto.image_url;
+    let imageUrl = '';
 
     if (imageFile) {
       const uploadResult = await this.uploadItemImage(imageFile);
@@ -200,7 +198,7 @@ export class UploadService {
       throw new BadRequestException(`Item with ID ${id} not found`);
     }
 
-    let imageUrl = updateItemDto.image_url;
+    let imageUrl = '';
 
     if (imageFile) {
       // Eliminar imagen anterior si existe

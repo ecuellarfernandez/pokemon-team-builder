@@ -1,7 +1,7 @@
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsNumber,
-  IsUrl,
   IsNotEmpty,
   IsOptional,
   Min,
@@ -20,31 +20,33 @@ export class CreatePokemonDto {
   @IsOptional()
   type_2_id?: string;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   base_hp!: number;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   base_atk!: number;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   base_def!: number;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   base_spa!: number;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   base_spd!: number;
 
+  @Type(() => Number)
   @IsNumber()
   @Min(1)
   base_spe!: number;
-
-  @IsUrl()
-  @IsNotEmpty()
-  image_url!: string;
 }

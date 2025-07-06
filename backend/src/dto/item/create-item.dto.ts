@@ -1,4 +1,4 @@
-import { IsString, IsUrl, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class CreateItemDto {
   @IsString()
@@ -8,8 +8,4 @@ export class CreateItemDto {
   @IsString()
   @IsNotEmpty()
   description!: string;
-
-  @IsUrl()
-  @IsNotEmpty()
-  image_url!: string;
 }
