@@ -11,6 +11,9 @@ import UserDashboard from './pages/user/Dashboard';
 import PlaceholderPage from './components/common/PlaceholderPage';
 import Users from './pages/admin/Users';
 import Items from './pages/admin/Items';
+import Types from './pages/admin/Types';
+import Natures from './pages/admin/Natures';
+import Categories from './pages/admin/Categories';
 
 function App() {
   return (
@@ -38,9 +41,9 @@ function App() {
               <Route path="movimientos" element={<PlaceholderPage title="Modulo Movimientos" />} />
               <Route path="items" element={<Items />} />
               <Route path="habilidades" element={<PlaceholderPage title="Modulo Habilidades" />} />
-              <Route path="tipos" element={<PlaceholderPage title="Modulo Tipos" />} />
-              <Route path="naturalezas" element={<PlaceholderPage title="Modulo Naturalezas" />} />
-              <Route path="categorias" element={<PlaceholderPage title="Modulo Categorias" />} />
+              <Route path="tipos" element={<Types />} />
+              <Route path="naturalezas" element={<Natures />} />
+              <Route path="categorias" element={<Categories />} />
             </Route>
             
             {/* Protected User Routes */}
