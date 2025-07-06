@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { Movimiento } from '../entities';
 import { CreateMovimientoDto } from '../dto/movimiento/create-movimiento.dto';
 import { UpdateMovimientoDto } from '../dto/movimiento/update-movimiento.dto';
@@ -17,13 +17,19 @@ export class MovimientoService {
     return await this.movimientoRepository.save(movimiento);
   }
 
-  async findAll(name?: string): Promise<Movimiento[]> {
-    const whereCondition = name ? { name: Like(`%${name}%`) } : {};
-    return await this.movimientoRepository.find({
+  async findAll(name?: string): Promise<any[]> {
+    const whereCondition = name ? { name: ILike(`%${name}%`) } : {};
+    const movimientos = await this.movimientoRepository.find({
       where: whereCondition,
       relations: ['tipo', 'categoria'],
       order: { name: 'ASC' },
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return movimientos.map(({ categoria_id, tipo, categoria, ...rest }) => ({
+      ...rest,
+      type: tipo,
+      category: categoria,
+    }));
   }
 
   async findOne(id: string): Promise<Movimiento> {
@@ -53,11 +59,17 @@ export class MovimientoService {
     await this.movimientoRepository.remove(movimiento);
   }
 
-  async findByName(name: string): Promise<Movimiento[]> {
-    return await this.movimientoRepository.find({
-      where: { name: Like(`%${name}%`) },
+  async findByName(name: string): Promise<any[]> {
+    const movimientos = await this.movimientoRepository.find({
+      where: { name: ILike(`%${name}%`) },
       relations: ['tipo', 'categoria'],
       take: 10, // Límite para autocompletado
     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return movimientos.map(({ categoria_id, tipo, categoria, ...rest }) => ({
+      ...rest,
+      type: tipo,
+      category: categoria,
+    }));
   }
 }

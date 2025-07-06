@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { Habilidad } from '../entities/habilidad.entity';
 import { CreateHabilidadDto } from '../dto/habilidad/create-habilidad.dto';
 import { UpdateHabilidadDto } from 'src/dto/habilidad/update-habilidad.dto';
@@ -20,7 +20,7 @@ export class HabilidadService {
   async findAll(name?: string): Promise<Habilidad[]> {
     if (name) {
       return await this.habilidadRepository.find({
-        where: { name: Like(`%${name}%`) },
+        where: { name: ILike(`%${name}%`) },
         order: { name: 'ASC' },
       });
     }
@@ -31,7 +31,7 @@ export class HabilidadService {
 
   async findByName(name: string): Promise<Habilidad[]> {
     return await this.habilidadRepository.find({
-      where: { name: Like(`%${name}%`) },
+      where: { name: ILike(`%${name}%`) },
       order: { name: 'ASC' },
     });
   }

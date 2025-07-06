@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { CategoriaMovimiento } from '../entities/categoria-movimiento.entity';
 import { CreateCategoriaMovimientoDto } from '../dto/categoria-movimiento/create-categoria-movimiento.dto';
 import { UpdateCategoriaMovimientoDto } from 'src/dto/categoria-movimiento/update-categoria-movimiento.dto';
@@ -24,7 +24,7 @@ export class CategoriaMovimientoService {
   async findAll(name?: string): Promise<CategoriaMovimiento[]> {
     if (name) {
       return await this.categoriaMovimientoRepository.find({
-        where: { name: Like(`%${name}%`) },
+        where: { name: ILike(`%${name}%`) },
         order: { name: 'ASC' },
       });
     }
@@ -35,7 +35,7 @@ export class CategoriaMovimientoService {
 
   async findByName(name: string): Promise<CategoriaMovimiento[]> {
     return await this.categoriaMovimientoRepository.find({
-      where: { name: Like(`%${name}%`) },
+      where: { name: ILike(`%${name}%`) },
       order: { name: 'ASC' },
     });
   }

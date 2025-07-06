@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { Item } from '../entities';
 import { CreateItemDto } from '../dto/item/create-item.dto';
 import { UpdateItemDto } from '../dto/item/update-item.dto';
@@ -18,7 +18,7 @@ export class ItemService {
   }
 
   async findAll(name?: string): Promise<Item[]> {
-    const whereCondition = name ? { name: Like(`%${name}%`) } : {};
+    const whereCondition = name ? { name: ILike(`%${name}%`) } : {};
     return await this.itemRepository.find({
       where: whereCondition,
       order: { name: 'ASC' },
@@ -50,7 +50,7 @@ export class ItemService {
 
   async findByName(name: string): Promise<Item[]> {
     return await this.itemRepository.find({
-      where: { name: Like(`%${name}%`) },
+      where: { name: ILike(`%${name}%`) },
       take: 10, // Límite para autocompletado
     });
   }

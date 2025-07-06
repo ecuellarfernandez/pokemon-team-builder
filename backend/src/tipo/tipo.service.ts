@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { Tipo } from '../entities/tipo.entity';
 import { CreateTipoDto } from '../dto/tipo/create-tipo.dto';
 import { UpdateTipoDto } from 'src/dto/tipo/update-tipo.dto';
@@ -20,7 +20,7 @@ export class TipoService {
   async findAll(name?: string): Promise<Tipo[]> {
     if (name) {
       return await this.tipoRepository.find({
-        where: { name: Like(`%${name}%`) },
+        where: { name: ILike(`%${name}%`) },
         order: { name: 'ASC' },
       });
     }
@@ -31,7 +31,7 @@ export class TipoService {
 
   async findByName(name: string): Promise<Tipo[]> {
     return await this.tipoRepository.find({
-      where: { name: Like(`%${name}%`) },
+      where: { name: ILike(`%${name}%`) },
       order: { name: 'ASC' },
     });
   }

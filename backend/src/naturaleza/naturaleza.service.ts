@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { Naturaleza } from '../entities/naturaleza.entity';
 import { CreateNaturalezaDto } from '../dto/naturaleza/create-naturaleza.dto';
 import { UpdateNaturalezaDto } from 'src/dto/naturaleza/update-naturaleza.dto';
@@ -20,7 +20,7 @@ export class NaturalezaService {
   async findAll(name?: string): Promise<Naturaleza[]> {
     if (name) {
       return await this.naturalezaRepository.find({
-        where: { name: Like(`%${name}%`) },
+        where: { name: ILike(`%${name}%`) },
         order: { name: 'ASC' },
       });
     }
@@ -31,7 +31,7 @@ export class NaturalezaService {
 
   async findByName(name: string): Promise<Naturaleza[]> {
     return await this.naturalezaRepository.find({
-      where: { name: Like(`%${name}%`) },
+      where: { name: ILike(`%${name}%`) },
       order: { name: 'ASC' },
     });
   }
