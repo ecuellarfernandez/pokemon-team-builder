@@ -3,13 +3,13 @@ import { IsString, IsUrl, IsNotEmpty } from 'class-validator';
 export class CreateItemDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsString()
   @IsNotEmpty()
-  description: string;
+  description!: string;
 
   @IsUrl()
   @IsNotEmpty()
-  image_url: string;
+  image_url!: string;
 }

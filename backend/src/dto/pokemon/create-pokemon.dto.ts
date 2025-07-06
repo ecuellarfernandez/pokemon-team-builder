@@ -10,11 +10,11 @@ import {
 export class CreatePokemonDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name!: string;
 
   @IsString()
   @IsNotEmpty()
-  type_1_id: string;
+  type_1_id!: string;
 
   @IsString()
   @IsOptional()
@@ -22,29 +22,29 @@ export class CreatePokemonDto {
 
   @IsNumber()
   @Min(1)
-  base_hp: number;
+  base_hp!: number;
 
   @IsNumber()
   @Min(1)
-  base_atk: number;
+  base_atk!: number;
 
   @IsNumber()
   @Min(1)
-  base_def: number;
+  base_def!: number;
 
   @IsNumber()
   @Min(1)
-  base_spa: number;
+  base_spa!: number;
 
   @IsNumber()
   @Min(1)
-  base_spd: number;
+  base_spd!: number;
 
   @IsNumber()
   @Min(1)
-  base_spe: number;
+  base_spe!: number;
 
   @IsUrl()
   @IsNotEmpty()
-  image_url: string;
+  image_url!: string;
 }

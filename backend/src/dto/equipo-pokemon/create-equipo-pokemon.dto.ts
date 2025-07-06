@@ -12,23 +12,23 @@ import {
 export class CreateEquipoPokemonDto {
   @IsString()
   @IsNotEmpty()
-  pokemon_id: string;
+  pokemon_id!: string;
 
   @IsString()
   @IsNotEmpty()
-  item_id: string;
+  item_id!: string;
 
   @IsString()
   @IsNotEmpty()
-  habilidad_id: string;
+  habilidad_id!: string;
 
   @IsString()
   @IsNotEmpty()
-  nature_id: string;
+  nature_id!: string;
 
   @IsString()
   @IsNotEmpty()
-  nickname: string;
+  nickname!: string;
 
   @IsNumber()
   @Min(0)
@@ -111,5 +111,5 @@ export class CreateEquipoPokemonDto {
   @IsArray()
   @ArrayMaxSize(4)
   @IsString({ each: true })
-  movimiento_ids: string[];
+  movimiento_ids!: string[];
 }
