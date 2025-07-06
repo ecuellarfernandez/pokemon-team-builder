@@ -8,23 +8,37 @@ import {
   Delete,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ItemService } from './item.service';
 import { CreateItemDto } from '../dto/item/create-item.dto';
 import { UpdateItemDto } from '../dto/item/update-item.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { UploadService } from '../upload/upload.service';
 
 @Controller('item')
 @UseGuards(JwtAuthGuard)
 export class ItemController {
-  constructor(private readonly itemService: ItemService) {}
+  constructor(
+    private readonly itemService: ItemService,
+    private readonly uploadService: UploadService,
+  ) {}
 
   @Post()
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  create(@Body() createItemDto: CreateItemDto) {
+  @UseInterceptors(FileInterceptor('image'))
+  create(
+    @Body() createItemDto: CreateItemDto,
+    @UploadedFile() imageFile?: Express.Multer.File,
+  ) {
+    if (imageFile) {
+      return this.uploadService.createItemWithImage(createItemDto, imageFile);
+    }
     return this.itemService.create(createItemDto);
   }
 
@@ -44,9 +58,21 @@ export class ItemController {
   }
 
   @Patch(':id')
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
+  @UseInterceptors(FileInterceptor('image'))
+  update(
+    @Param('id') id: string,
+    @Body() updateItemDto: UpdateItemDto,
+    @UploadedFile() imageFile?: Express.Multer.File,
+  ) {
+    if (imageFile) {
+      return this.uploadService.updateItemWithImage(
+        id,
+        updateItemDto,
+        imageFile,
+      );
+    }
     return this.itemService.update(id, updateItemDto);
   }
 
