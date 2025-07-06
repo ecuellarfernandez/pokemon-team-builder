@@ -209,15 +209,57 @@
 							{
 								"key": "Authorization",
 								"value": "Bearer {{accessToken}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
 							}
 						],
 						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Pikachu\",\n  \"type_1_id\": \"electric-type-id\",\n  \"type_2_id\": null,\n  \"base_hp\": 35,\n  \"base_atk\": 55,\n  \"base_def\": 40,\n  \"base_spa\": 50,\n  \"base_spd\": 50,\n  \"base_spe\": 90,\n  \"image_url\": \"https://example.com/pikachu.png\"\n}"
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Pikachu",
+									"type": "text"
+								},
+								{
+									"key": "type_1_id",
+									"value": "electric-type-id",
+									"type": "text"
+								},
+								{
+									"key": "base_hp",
+									"value": "35",
+									"type": "text"
+								},
+								{
+									"key": "base_atk",
+									"value": "55",
+									"type": "text"
+								},
+								{
+									"key": "base_def",
+									"value": "40",
+									"type": "text"
+								},
+								{
+									"key": "base_spa",
+									"value": "50",
+									"type": "text"
+								},
+								{
+									"key": "base_spd",
+									"value": "50",
+									"type": "text"
+								},
+								{
+									"key": "base_spe",
+									"value": "90",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
 						},
 						"url": {
 							"raw": "{{baseUrl}}/pokemon",
@@ -238,15 +280,27 @@
 							{
 								"key": "Authorization",
 								"value": "Bearer {{accessToken}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
 							}
 						],
 						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Pikachu Updated\",\n  \"base_hp\": 40\n}"
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Pikachu Updated",
+									"type": "text"
+								},
+								{
+									"key": "base_hp",
+									"value": "40",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": []
+								}
+							]
 						},
 						"url": {
 							"raw": "{{baseUrl}}/pokemon/{{pokemonId}}",
@@ -387,62 +441,83 @@
 				},
 				{
 					"name": "Create Item (Admin)",
-					"request": {
-						"method": "POST",
-						"header": [
+				"request": {
+					"method": "POST",
+					"header": [
+						{
+							"key": "Authorization",
+							"value": "Bearer {{accessToken}}"
+						}
+					],
+					"body": {
+						"mode": "formdata",
+						"formdata": [
 							{
-								"key": "Authorization",
-								"value": "Bearer {{accessToken}}"
+								"key": "name",
+								"value": "Pokeball",
+								"type": "text"
 							},
 							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"key": "description",
+								"value": "A device for catching wild Pokémon",
+								"type": "text"
+							},
+							{
+								"key": "image",
+								"type": "file",
+								"src": [],
+								"disabled": true
 							}
+						]
+					},
+					"url": {
+						"raw": "{{baseUrl}}/item",
+						"host": [
+							"{{baseUrl}}"
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Pokeball\",\n  \"description\": \"A device for catching wild Pokémon\",\n  \"image_url\": \"https://example.com/pokeball.png\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/item",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"item"
-							]
-						}
+						"path": [
+							"item"
+						]
 					}
+				}
 				},
 				{
 					"name": "Update Item (Admin)",
-					"request": {
-						"method": "PATCH",
-						"header": [
+				"request": {
+					"method": "PATCH",
+					"header": [
+						{
+							"key": "Authorization",
+							"value": "Bearer {{accessToken}}"
+						}
+					],
+					"body": {
+						"mode": "formdata",
+						"formdata": [
 							{
-								"key": "Authorization",
-								"value": "Bearer {{accessToken}}"
+								"key": "description",
+								"value": "Updated description",
+								"type": "text"
 							},
 							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"key": "image",
+								"type": "file",
+								"src": [],
+								"disabled": true
 							}
+						]
+					},
+					"url": {
+						"raw": "{{baseUrl}}/item/{{itemId}}",
+						"host": [
+							"{{baseUrl}}"
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"description\": \"Updated description\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/item/{{itemId}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"item",
-								"{{itemId}}"
-							]
-						}
+						"path": [
+							"item",
+							"{{itemId}}"
+						]
 					}
+				}
 				},
 				{
 					"name": "Delete Item (Admin)",
@@ -991,6 +1066,77 @@
 							"path": [
 								"usuario",
 								"{{userId}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Upload (Admin)",
+			"item": [
+				{
+					"name": "Upload Pokemon Image",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": ""
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/upload/pokemon",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"upload",
+								"pokemon"
+							]
+						}
+					}
+				},
+				{
+					"name": "Upload Item Image",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "image",
+									"type": "file",
+									"src": ""
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/upload/item",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"upload",
+								"item"
 							]
 						}
 					}
