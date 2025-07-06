@@ -5,6 +5,8 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Role } from './role.entity';
 import { Equipo } from './equipo.entity';
@@ -32,4 +34,10 @@ export class Usuario {
 
   @OneToMany(() => Equipo, (equipo) => equipo.usuario)
   equipos: Equipo[];
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 }

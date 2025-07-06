@@ -31,6 +31,11 @@ export class UsuarioController {
     return this.usuarioService.findAll();
   }
 
+  @Get('roles')
+  getRoles() {
+    return this.usuarioService.getRoles();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usuarioService.findOne(id);

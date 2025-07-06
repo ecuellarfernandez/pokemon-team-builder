@@ -55,15 +55,35 @@ export class UsuarioService {
   async findAll(): Promise<Usuario[]> {
     return await this.usuarioRepository.find({
       relations: ['role'],
-      select: ['id', 'username', 'email', 'role_id'], // Excluir password_hash
+      select: ['id', 'username', 'email', 'role_id', 'created_at'], // Excluir password_hash
     });
+  }
+
+  async getRoles(): Promise<Role[]> {
+    // Ensure basic roles exist
+    await this.ensureBasicRoles();
+
+    return await this.roleRepository.find({
+      select: ['id', 'name'],
+    });
+  }
+
+  private async ensureBasicRoles(): Promise<void> {
+    const existingRoles = await this.roleRepository.find();
+
+    if (existingRoles.length === 0) {
+      const adminRole = this.roleRepository.create({ name: 'admin' });
+      const userRole = this.roleRepository.create({ name: 'user' });
+
+      await this.roleRepository.save([adminRole, userRole]);
+    }
   }
 
   async findOne(id: string): Promise<Usuario> {
     const usuario = await this.usuarioRepository.findOne({
       where: { id },
       relations: ['role'],
-      select: ['id', 'username', 'email', 'role_id'], // Excluir password_hash
+      select: ['id', 'username', 'email', 'role_id', 'created_at'], // Excluir password_hash
     });
 
     if (!usuario) {
