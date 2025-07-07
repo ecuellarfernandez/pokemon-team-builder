@@ -222,6 +222,19 @@
                   "type": "text"
                 },
                 {
+                  "key": "habilidad_ids",
+                  "value": "[\"habilidad-id-1\", \"habilidad-id-2\"]",
+                  "type": "text",
+                  "description": "JSON array of ability IDs (1-3 abilities)"
+                },
+                {
+                  "key": "movimiento_ids",
+                  "value": "[\"movimiento-id-1\", \"movimiento-id-2\"]",
+                  "type": "text",
+                  "description": "JSON array of move IDs (0-4 moves)",
+                  "disabled": true
+                },
+                {
                   "key": "image",
                   "type": "file",
                   "src": []
@@ -259,6 +272,20 @@
                   "type": "text"
                 },
                 {
+                  "key": "habilidad_ids",
+                  "value": "[\"habilidad-id-1\", \"habilidad-id-3\"]",
+                  "type": "text",
+                  "description": "JSON array of ability IDs (1-3 abilities)",
+                  "disabled": true
+                },
+                {
+                  "key": "movimiento_ids",
+                  "value": "[\"movimiento-id-3\", \"movimiento-id-4\"]",
+                  "type": "text",
+                  "description": "JSON array of move IDs (0-4 moves)",
+                  "disabled": true
+                },
+                {
                   "key": "image",
                   "type": "file",
                   "src": []
@@ -286,6 +313,88 @@
               "raw": "{{baseUrl}}/pokemon/{{pokemonId}}",
               "host": ["{{baseUrl}}"],
               "path": ["pokemon", "{{pokemonId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Pokemon Habilidades",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pokemon/{{pokemonId}}/habilidades",
+              "host": ["{{baseUrl}}"],
+              "path": ["pokemon", "{{pokemonId}}", "habilidades"]
+            }
+          }
+        },
+        {
+          "name": "Get Pokemon Movimientos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pokemon/{{pokemonId}}/movimientos",
+              "host": ["{{baseUrl}}"],
+              "path": ["pokemon", "{{pokemonId}}", "movimientos"]
+            }
+          }
+        },
+        {
+          "name": "Get All Habilidades (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pokemon/admin/habilidades",
+              "host": ["{{baseUrl}}"],
+              "path": ["pokemon", "admin", "habilidades"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Movimientos (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pokemon/admin/movimientos",
+              "host": ["{{baseUrl}}"],
+              "path": ["pokemon", "admin", "movimientos"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
             }
           }
         }

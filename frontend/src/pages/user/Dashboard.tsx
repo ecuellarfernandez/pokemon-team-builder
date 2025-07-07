@@ -12,7 +12,7 @@ const UserDashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Link to="/equipos" className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white hover:from-blue-600 hover:to-blue-700 transition-all">
+        <Link to="/dashboard/equipos" className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-md p-6 text-white hover:from-blue-600 hover:to-blue-700 transition-all">
           <div className="flex items-center mb-2">
             <Users className="h-6 w-6 mr-2" />
             <h3 className="text-lg font-semibold">Mis Equipos</h3>
@@ -20,7 +20,7 @@ const UserDashboard: React.FC = () => {
           <p className="text-blue-100">Gestiona y crea tus equipos Pokémon</p>
         </Link>
 
-        <Link to="/pokemon" className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white hover:from-green-600 hover:to-green-700 transition-all">
+        <Link to="/dashboard/pokemon" className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-md p-6 text-white hover:from-green-600 hover:to-green-700 transition-all">
           <div className="flex items-center mb-2">
             <Search className="h-6 w-6 mr-2" />
             <h3 className="text-lg font-semibold">Explorar Pokémon</h3>
@@ -28,7 +28,7 @@ const UserDashboard: React.FC = () => {
           <p className="text-green-100">Descubre y busca Pokémon</p>
         </Link>
 
-        <Link to="/batallas" className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white hover:from-purple-600 hover:to-purple-700 transition-all">
+        <Link to="/dashboard/batallas" className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-md p-6 text-white hover:from-purple-600 hover:to-purple-700 transition-all">
           <div className="flex items-center mb-2">
             <Zap className="h-6 w-6 mr-2" />
             <h3 className="text-lg font-semibold">Batallas</h3>

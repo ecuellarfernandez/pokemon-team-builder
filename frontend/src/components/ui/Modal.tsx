@@ -29,7 +29,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
         ></div>
 
         {/* Modal panel */}
-        <div className="inline-block align-bottom rounded-lg text-left overflow-hidden transform transition-all sm:my-8 sm:align-middle sm:w-full relative z-10">
+        <div className="inline-block align-bottom rounded-lg text-left overflow-visible transform transition-all sm:my-8 sm:align-middle sm:w-full relative z-10">
           <div className={`w-full ${sizeClasses[size]} mx-auto`}>
             {/* Header */}
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 rounded-xl">

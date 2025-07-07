@@ -5,7 +5,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Equipo, EquipoPokemon, EquipoPokemonMovimiento } from '../entities';
+import {
+  Equipo,
+  EquipoPokemon,
+  EquipoPokemonMovimiento,
+  PokemonMovimiento,
+  PokemonHabilidad,
+} from '../entities';
 import { CreateEquipoDto } from '../dto/equipo/create-equipo.dto';
 import { UpdateEquipoDto } from '../dto/equipo/update-equipo.dto';
 import { CreateEquipoPokemonDto } from '../dto/equipo-pokemon/create-equipo-pokemon.dto';
@@ -20,6 +26,10 @@ export class EquipoService {
     private equipoPokemonRepository: Repository<EquipoPokemon>,
     @InjectRepository(EquipoPokemonMovimiento)
     private equipoPokemonMovimientoRepository: Repository<EquipoPokemonMovimiento>,
+    @InjectRepository(PokemonMovimiento)
+    private pokemonMovimientoRepository: Repository<PokemonMovimiento>,
+    @InjectRepository(PokemonHabilidad)
+    private pokemonHabilidadRepository: Repository<PokemonHabilidad>,
   ) {}
 
   async create(
@@ -130,12 +140,19 @@ export class EquipoService {
       throw new BadRequestException('Los EVs totales no pueden exceder 508');
     }
 
-    // Validar que no tenga más de 4 movimientos
-    if (createEquipoPokemonDto.movimiento_ids.length > 4) {
-      throw new BadRequestException(
-        'Un Pokémon no puede tener más de 4 movimientos',
-      );
-    }
+    // Validaciones de movimientos
+    this.validateMaxMovimientos(createEquipoPokemonDto.movimiento_ids);
+    this.validateNoDuplicateMovimientos(createEquipoPokemonDto.movimiento_ids);
+    await this.validatePokemonMovimientos(
+      createEquipoPokemonDto.pokemon_id,
+      createEquipoPokemonDto.movimiento_ids,
+    );
+
+    // Validación de habilidad
+    await this.validatePokemonHabilidad(
+      createEquipoPokemonDto.pokemon_id,
+      createEquipoPokemonDto.habilidad_id,
+    );
 
     const equipoPokemon = this.equipoPokemonRepository.create({
       ...createEquipoPokemonDto,
@@ -200,13 +217,25 @@ export class EquipoService {
       }
     }
 
+    // Validar habilidad si se está actualizando
+    if (updateEquipoPokemonDto.habilidad_id) {
+      await this.validatePokemonHabilidad(
+        equipoPokemon.pokemon_id,
+        updateEquipoPokemonDto.habilidad_id,
+      );
+    }
+
     // Actualizar movimientos si se proporcionan
     if (updateEquipoPokemonDto.movimiento_ids) {
-      if (updateEquipoPokemonDto.movimiento_ids.length > 4) {
-        throw new BadRequestException(
-          'Un Pokémon no puede tener más de 4 movimientos',
-        );
-      }
+      // Validaciones de movimientos
+      this.validateMaxMovimientos(updateEquipoPokemonDto.movimiento_ids);
+      this.validateNoDuplicateMovimientos(
+        updateEquipoPokemonDto.movimiento_ids,
+      );
+      await this.validatePokemonMovimientos(
+        equipoPokemon.pokemon_id,
+        updateEquipoPokemonDto.movimiento_ids,
+      );
 
       // Eliminar movimientos existentes
       await this.equipoPokemonMovimientoRepository.delete({
@@ -270,5 +299,76 @@ export class EquipoService {
     }
 
     return equipoPokemon;
+  }
+
+  /**
+   * Valida que los movimientos proporcionados estén en la lista de movimientos permitidos del Pokémon
+   */
+  private async validatePokemonMovimientos(
+    pokemonId: string,
+    movimientoIds: string[],
+  ): Promise<void> {
+    if (movimientoIds.length === 0) return;
+
+    const allowedMovimientos = await this.pokemonMovimientoRepository.find({
+      where: { pokemon_id: pokemonId },
+    });
+
+    const allowedMovimientoIds = allowedMovimientos.map(
+      (pm) => pm.movimiento_id,
+    );
+
+    const invalidMovimientos = movimientoIds.filter(
+      (movId) => !allowedMovimientoIds.includes(movId),
+    );
+
+    if (invalidMovimientos.length > 0) {
+      throw new BadRequestException(
+        `Los siguientes movimientos no están permitidos para este Pokémon: ${invalidMovimientos.join(', ')}`,
+      );
+    }
+  }
+
+  /**
+   * Valida que la habilidad proporcionada esté en la lista de habilidades permitidas del Pokémon
+   */
+  private async validatePokemonHabilidad(
+    pokemonId: string,
+    habilidadId: string,
+  ): Promise<void> {
+    const allowedHabilidades = await this.pokemonHabilidadRepository.find({
+      where: { pokemon_id: pokemonId },
+    });
+
+    const allowedHabilidadIds = allowedHabilidades.map((ph) => ph.habilidad_id);
+
+    if (!allowedHabilidadIds.includes(habilidadId)) {
+      throw new BadRequestException(
+        'La habilidad seleccionada no está permitida para este Pokémon',
+      );
+    }
+  }
+
+  /**
+   * Valida que no haya movimientos duplicados
+   */
+  private validateNoDuplicateMovimientos(movimientoIds: string[]): void {
+    const uniqueMovimientos = new Set(movimientoIds);
+    if (uniqueMovimientos.size !== movimientoIds.length) {
+      throw new BadRequestException(
+        'No se pueden asignar movimientos duplicados al mismo Pokémon',
+      );
+    }
+  }
+
+  /**
+   * Valida que no se excedan los 4 movimientos máximos
+   */
+  private validateMaxMovimientos(movimientoIds: string[]): void {
+    if (movimientoIds.length > 4) {
+      throw new BadRequestException(
+        'Un Pokémon no puede tener más de 4 movimientos',
+      );
+    }
   }
 }

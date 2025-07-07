@@ -17,6 +17,9 @@ import Categories from './pages/admin/Categories';
 import Abilities from './pages/admin/Abilities';
 import Moves from './pages/admin/Moves';
 import Pokemon from './pages/admin/Pokemon';
+import EquiposList from './pages/user/EquiposList';
+import EquipoEditor from './pages/user/EquipoEditor';
+import PokemonExplorer from './pages/user/PokemonExplorer';
 
 function App() {
   return (
@@ -59,8 +62,9 @@ function App() {
               }
             >
               <Route index element={<UserDashboard />} />
-              <Route path="equipos" element={<PlaceholderPage title="Mis Equipos" />} />
-              <Route path="pokemon" element={<PlaceholderPage title="Explorar Pokemon" />} />
+              <Route path="equipos" element={<EquiposList />} />
+              <Route path="equipos/:id/editar" element={<EquipoEditor />} />
+              <Route path="pokemon" element={<PokemonExplorer />} />
               <Route path="batallas" element={<PlaceholderPage title="Simulador de Batallas" />} />
             </Route>
             

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
-import { Pokemon } from '../entities';
+import { Pokemon, PokemonHabilidad, PokemonMovimiento } from '../entities';
 import { CreatePokemonDto } from '../dto/pokemon/create-pokemon.dto';
 import { UpdatePokemonDto } from '../dto/pokemon/update-pokemon.dto';
 
@@ -10,11 +10,42 @@ export class PokemonService {
   constructor(
     @InjectRepository(Pokemon)
     private pokemonRepository: Repository<Pokemon>,
+    @InjectRepository(PokemonHabilidad)
+    private pokemonHabilidadRepository: Repository<PokemonHabilidad>,
+    @InjectRepository(PokemonMovimiento)
+    private pokemonMovimientoRepository: Repository<PokemonMovimiento>,
   ) {}
 
   async create(createPokemonDto: CreatePokemonDto): Promise<Pokemon> {
-    const pokemon = this.pokemonRepository.create(createPokemonDto);
-    return await this.pokemonRepository.save(pokemon);
+    const { habilidad_ids, movimiento_ids, ...pokemonData } = createPokemonDto;
+
+    // Crear el Pokémon
+    const pokemon = this.pokemonRepository.create(pokemonData);
+    const savedPokemon = await this.pokemonRepository.save(pokemon);
+
+    // Crear relaciones con habilidades
+    if (habilidad_ids && habilidad_ids.length > 0) {
+      const pokemonHabilidades = habilidad_ids.map((habilidadId) =>
+        this.pokemonHabilidadRepository.create({
+          pokemon_id: savedPokemon.id,
+          habilidad_id: habilidadId,
+        }),
+      );
+      await this.pokemonHabilidadRepository.save(pokemonHabilidades);
+    }
+
+    // Crear relaciones con movimientos
+    if (movimiento_ids && movimiento_ids.length > 0) {
+      const pokemonMovimientos = movimiento_ids.map((movimientoId) =>
+        this.pokemonMovimientoRepository.create({
+          pokemon_id: savedPokemon.id,
+          movimiento_id: movimientoId,
+        }),
+      );
+      await this.pokemonMovimientoRepository.save(pokemonMovimientos);
+    }
+
+    return await this.findOne(savedPokemon.id);
   }
 
   async findAll(name?: string): Promise<any[]> {
@@ -57,14 +88,113 @@ export class PokemonService {
     id: string,
     updatePokemonDto: UpdatePokemonDto,
   ): Promise<Pokemon> {
-    const pokemon = await this.findOne(id);
-    Object.assign(pokemon, updatePokemonDto);
-    return await this.pokemonRepository.save(pokemon);
+    const { habilidad_ids, movimiento_ids, ...pokemonData } = updatePokemonDto;
+
+    // Actualizar datos básicos del Pokémon
+    if (Object.keys(pokemonData).length > 0) {
+      await this.pokemonRepository.update(id, pokemonData);
+    }
+
+    // Actualizar habilidades si se proporcionan
+    if (habilidad_ids !== undefined) {
+      // Eliminar habilidades existentes
+      await this.pokemonHabilidadRepository.delete({ pokemon_id: id });
+
+      // Crear nuevas relaciones con habilidades
+      if (habilidad_ids.length > 0) {
+        const pokemonHabilidades = habilidad_ids.map((habilidadId) =>
+          this.pokemonHabilidadRepository.create({
+            pokemon_id: id,
+            habilidad_id: habilidadId,
+          }),
+        );
+        await this.pokemonHabilidadRepository.save(pokemonHabilidades);
+      }
+    }
+
+    // Actualizar movimientos si se proporcionan
+    if (movimiento_ids !== undefined) {
+      // Eliminar movimientos existentes
+      await this.pokemonMovimientoRepository.delete({ pokemon_id: id });
+
+      // Crear nuevas relaciones con movimientos
+      if (movimiento_ids.length > 0) {
+        const pokemonMovimientos = movimiento_ids.map((movimientoId) =>
+          this.pokemonMovimientoRepository.create({
+            pokemon_id: id,
+            movimiento_id: movimientoId,
+          }),
+        );
+        await this.pokemonMovimientoRepository.save(pokemonMovimientos);
+      }
+    }
+
+    return await this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
     const pokemon = await this.findOne(id);
+    
+    // Eliminar relaciones con habilidades
+    await this.pokemonHabilidadRepository.delete({ pokemon_id: id });
+    
+    // Eliminar relaciones con movimientos
+    await this.pokemonMovimientoRepository.delete({ pokemon_id: id });
+    
+    // Ahora eliminar el Pokémon
     await this.pokemonRepository.remove(pokemon);
+  }
+
+  async getPokemonHabilidades(pokemonId: string): Promise<any[]> {
+    const pokemon = await this.pokemonRepository.findOne({
+      where: { id: pokemonId },
+      relations: ['pokemonHabilidades', 'pokemonHabilidades.habilidad'],
+    });
+
+    if (!pokemon) {
+      throw new NotFoundException(`Pokemon with ID ${pokemonId} not found`);
+    }
+
+    return pokemon.pokemonHabilidades.map((ph) => ({
+      id: ph.habilidad.id,
+      name: ph.habilidad.name,
+    }));
+  }
+
+  async getPokemonMovimientos(pokemonId: string): Promise<any[]> {
+    const pokemon = await this.pokemonRepository.findOne({
+      where: { id: pokemonId },
+      relations: [
+        'pokemonMovimientos',
+        'pokemonMovimientos.movimiento',
+        'pokemonMovimientos.movimiento.categoria',
+        'pokemonMovimientos.movimiento.tipo',
+      ],
+    });
+
+    if (!pokemon) {
+      throw new NotFoundException(`Pokemon with ID ${pokemonId} not found`);
+    }
+
+    return pokemon.pokemonMovimientos.map((pm) => ({
+      id: pm.movimiento.id,
+      name: pm.movimiento.name,
+      description: pm.movimiento.description,
+      power: pm.movimiento.power,
+      accuracy: pm.movimiento.accuracy,
+      categoria: pm.movimiento.categoria
+        ? {
+            id: pm.movimiento.categoria.id,
+            name: pm.movimiento.categoria.name,
+          }
+        : null,
+      tipo: pm.movimiento.tipo
+        ? {
+            id: pm.movimiento.tipo.id,
+            name: pm.movimiento.tipo.name,
+          }
+        : null,
+    }));
   }
 
   async findByName(name: string): Promise<any[]> {
