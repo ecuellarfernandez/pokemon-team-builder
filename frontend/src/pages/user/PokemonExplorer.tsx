@@ -8,7 +8,7 @@ import Modal from '../../components/ui/Modal';
 interface Pokemon {
   id: string;
   name: string;
-  sprite_url?: string;
+  image_url?: string;
   type1: { id: string; name: string };
   type2?: { id: string; name: string };
   base_hp: number;
@@ -20,20 +20,19 @@ interface Pokemon {
   height?: number;
   weight?: number;
   description?: string;
+  habilidades?: { id: string; name: string; description?: string }[];
+  movimientos?: { id: string; name: string; type: { name: string }; power?: number; accuracy?: number }[];
 }
 
-interface Type {
-  id: string;
-  name: string;
-}
+
 
 const PokemonExplorer: React.FC = () => {
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [filteredPokemons, setFilteredPokemons] = useState<Pokemon[]>([]);
-  const [types, setTypes] = useState<Type[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+
   const [showFilters, setShowFilters] = useState(false);
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
   const [showPokemonModal, setShowPokemonModal] = useState(false);
@@ -42,12 +41,11 @@ const PokemonExplorer: React.FC = () => {
 
   useEffect(() => {
     fetchPokemons();
-    fetchTypes();
   }, []);
 
   useEffect(() => {
     filterPokemons();
-  }, [pokemons, searchTerm, selectedType]);
+  }, [pokemons, searchTerm]);
 
   const fetchPokemons = async () => {
     try {
@@ -69,20 +67,28 @@ const PokemonExplorer: React.FC = () => {
     }
   };
 
-  const fetchTypes = async () => {
+  const fetchPokemonDetails = async (pokemonId: string) => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/type`, {
-        headers: getAuthHeaders()
-      });
+      const [habilidadesResponse, movimientosResponse] = await Promise.all([
+        fetch(`${API_CONFIG.BASE_URL}/pokemon/${pokemonId}/habilidades`, {
+          headers: getAuthHeaders()
+        }),
+        fetch(`${API_CONFIG.BASE_URL}/pokemon/${pokemonId}/movimientos`, {
+          headers: getAuthHeaders()
+        })
+      ]);
 
-      if (response.ok) {
-        const data = await response.json();
-        setTypes(data);
-      }
+      const habilidades = habilidadesResponse.ok ? await habilidadesResponse.json() : [];
+      const movimientos = movimientosResponse.ok ? await movimientosResponse.json() : [];
+
+      return { habilidades, movimientos };
     } catch (error) {
-      console.error('Error fetching types:', error);
+      console.error('Error fetching pokemon details:', error);
+      return { habilidades: [], movimientos: [] };
     }
   };
+
+
 
   const filterPokemons = () => {
     let filtered = pokemons;
@@ -91,13 +97,6 @@ const PokemonExplorer: React.FC = () => {
     if (searchTerm.trim()) {
       filtered = filtered.filter(pokemon =>
         pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Filtrar por tipo
-    if (selectedType) {
-      filtered = filtered.filter(pokemon =>
-        pokemon.type1.id === selectedType || pokemon.type2?.id === selectedType
       );
     }
 
@@ -129,14 +128,21 @@ const PokemonExplorer: React.FC = () => {
     return colors[typeName.toLowerCase()] || 'bg-gray-400';
   };
 
-  const openPokemonModal = (pokemon: Pokemon) => {
+  const openPokemonModal = async (pokemon: Pokemon) => {
     setSelectedPokemon(pokemon);
     setShowPokemonModal(true);
+    
+    // Cargar detalles adicionales del Pokémon
+    const details = await fetchPokemonDetails(pokemon.id);
+    setSelectedPokemon({
+      ...pokemon,
+      habilidades: details.habilidades,
+      movimientos: details.movimientos
+    });
   };
 
   const clearFilters = () => {
     setSearchTerm('');
-    setSelectedType('');
   };
 
   // Pagination
@@ -182,7 +188,7 @@ const PokemonExplorer: React.FC = () => {
       {/* Filtros */}
       {showFilters && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Buscar por nombre
@@ -199,23 +205,6 @@ const PokemonExplorer: React.FC = () => {
                   placeholder="Buscar Pokémon..."
                 />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filtrar por tipo
-              </label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Todos los tipos</option>
-                {types.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
             </div>
             <div className="flex items-end">
               <button
@@ -249,37 +238,89 @@ const PokemonExplorer: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {currentPokemons.map((pokemon) => (
               <div
                 key={pokemon.id}
-                className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => openPokemonModal(pokemon)}
               >
-                {pokemon.sprite_url && (
-                  <img
-                    src={pokemon.sprite_url}
-                    alt={pokemon.name}
-                    className="w-24 h-24 mx-auto object-contain mb-3"
-                  />
-                )}
-                <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
-                  {pokemon.name}
-                </h3>
-                <div className="flex justify-center gap-1 mb-3">
-                  <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(pokemon.type1.name)}`}>
-                    {pokemon.type1.name}
-                  </span>
-                  {pokemon.type2 && (
-                    <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(pokemon.type2.name)}`}>
-                      {pokemon.type2.name}
-                    </span>
+                <div className="flex items-start gap-4 mb-4">
+                  {pokemon.image_url && (
+                    <img
+                      src={`${API_CONFIG.BASE_URL}${pokemon.image_url}`}
+                      alt={pokemon.name}
+                      className="w-20 h-20 object-contain flex-shrink-0"
+                    />
                   )}
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {pokemon.name}
+                    </h3>
+                    <div className="flex gap-2 mb-3">
+                      <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(pokemon.type1.name)}`}>
+                        {pokemon.type1.name}
+                      </span>
+                      {pokemon.type2 && (
+                        <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(pokemon.type2.name)}`}>
+                          {pokemon.type2.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
+                
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-red-600">{pokemon.base_hp}</div>
+                    <div className="text-xs text-gray-600">HP</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-orange-600">{pokemon.base_atk}</div>
+                    <div className="text-xs text-gray-600">ATK</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-yellow-600">{pokemon.base_def}</div>
+                    <div className="text-xs text-gray-600">DEF</div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-600">{pokemon.base_spa}</div>
+                    <div className="text-xs text-gray-600">SP.ATK</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-600">{pokemon.base_spd}</div>
+                    <div className="text-xs text-gray-600">SP.DEF</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-purple-600">{pokemon.base_spe}</div>
+                    <div className="text-xs text-gray-600">SPEED</div>
+                  </div>
+                </div>
+                
+                {(pokemon.height || pokemon.weight) && (
+                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                    {pokemon.height && (
+                      <div className="text-center">
+                        <span className="font-medium text-gray-700">Altura:</span>
+                        <div className="text-gray-600">{pokemon.height / 10} m</div>
+                      </div>
+                    )}
+                    {pokemon.weight && (
+                      <div className="text-center">
+                        <span className="font-medium text-gray-700">Peso:</span>
+                        <div className="text-gray-600">{pokemon.weight / 10} kg</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <div className="flex justify-center">
-                  <button className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm">
+                  <button className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm font-medium">
                     <Eye className="h-4 w-4" />
-                    Ver detalles
+                    Ver más detalles
                   </button>
                 </div>
               </div>
@@ -409,6 +450,57 @@ const PokemonExplorer: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Habilidades */}
+            {selectedPokemon.habilidades && selectedPokemon.habilidades.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Habilidades</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedPokemon.habilidades.map((habilidad) => (
+                    <div key={habilidad.id} className="bg-blue-50 rounded-lg p-3">
+                      <h4 className="font-semibold text-blue-900">{habilidad.name}</h4>
+                      {habilidad.description && (
+                        <p className="text-blue-700 text-sm mt-1">{habilidad.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Movimientos */}
+            {selectedPokemon.movimientos && selectedPokemon.movimientos.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Movimientos Disponibles</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                  {selectedPokemon.movimientos.slice(0, 20).map((movimiento) => (
+                    <div key={movimiento.id} className="bg-gray-50 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-semibold text-gray-900">{movimiento.name}</h4>
+                        {movimiento.type && (
+                          <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(movimiento.type.name)}`}>
+                            {movimiento.type.name}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex gap-4 text-sm text-gray-600">
+                        {movimiento.power && (
+                          <span>Poder: {movimiento.power}</span>
+                        )}
+                        {movimiento.accuracy && (
+                          <span>Precisión: {movimiento.accuracy}%</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {selectedPokemon.movimientos.length > 20 && (
+                  <p className="text-sm text-gray-500 mt-2 text-center">
+                    Mostrando 20 de {selectedPokemon.movimientos.length} movimientos
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
       </Modal>

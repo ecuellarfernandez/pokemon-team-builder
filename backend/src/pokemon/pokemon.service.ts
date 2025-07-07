@@ -134,13 +134,13 @@ export class PokemonService {
 
   async remove(id: string): Promise<void> {
     const pokemon = await this.findOne(id);
-    
+
     // Eliminar relaciones con habilidades
     await this.pokemonHabilidadRepository.delete({ pokemon_id: id });
-    
+
     // Eliminar relaciones con movimientos
     await this.pokemonMovimientoRepository.delete({ pokemon_id: id });
-    
+
     // Ahora eliminar el Pokémon
     await this.pokemonRepository.remove(pokemon);
   }

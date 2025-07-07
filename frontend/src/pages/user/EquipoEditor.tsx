@@ -133,12 +133,17 @@ const EquipoEditor: React.FC = () => {
   });
 
   useEffect(() => {
-    if (isEditing) {
+    if (isEditing && id) {
       fetchEquipo();
     }
   }, [id, isEditing]);
 
   const fetchEquipo = async () => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/equipo/${id}`, {
         headers: getAuthHeaders()

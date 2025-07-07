@@ -8,7 +8,6 @@ import AdminLayout from './components/layout/AdminLayout';
 import UserLayout from './components/layout/UserLayout';
 import AdminDashboard from './pages/admin/Dashboard';
 import UserDashboard from './pages/user/Dashboard';
-import PlaceholderPage from './components/common/PlaceholderPage';
 import Users from './pages/admin/Users';
 import Items from './pages/admin/Items';
 import Types from './pages/admin/Types';
@@ -63,9 +62,9 @@ function App() {
             >
               <Route index element={<UserDashboard />} />
               <Route path="equipos" element={<EquiposList />} />
+              <Route path="equipos/nuevo" element={<EquipoEditor />} />
               <Route path="equipos/:id/editar" element={<EquipoEditor />} />
               <Route path="pokemon" element={<PokemonExplorer />} />
-              <Route path="batallas" element={<PlaceholderPage title="Simulador de Batallas" />} />
             </Route>
             
             {/* Default redirect */}

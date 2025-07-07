@@ -10,10 +10,13 @@ import { Observable } from 'rxjs';
 export class TransformArraysInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
-    
+
     if (request.body) {
       // Transformar habilidad_ids si existe y es string
-      if (request.body.habilidad_ids && typeof request.body.habilidad_ids === 'string') {
+      if (
+        request.body.habilidad_ids &&
+        typeof request.body.habilidad_ids === 'string'
+      ) {
         try {
           request.body.habilidad_ids = JSON.parse(request.body.habilidad_ids);
         } catch (error) {
@@ -21,9 +24,12 @@ export class TransformArraysInterceptor implements NestInterceptor {
           console.warn('Error parsing habilidad_ids:', error);
         }
       }
-      
+
       // Transformar movimiento_ids si existe y es string
-      if (request.body.movimiento_ids && typeof request.body.movimiento_ids === 'string') {
+      if (
+        request.body.movimiento_ids &&
+        typeof request.body.movimiento_ids === 'string'
+      ) {
         try {
           request.body.movimiento_ids = JSON.parse(request.body.movimiento_ids);
         } catch (error) {
@@ -32,7 +38,7 @@ export class TransformArraysInterceptor implements NestInterceptor {
         }
       }
     }
-    
+
     return next.handle();
   }
 }
