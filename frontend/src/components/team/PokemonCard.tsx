@@ -10,7 +10,7 @@ interface PokemonCardProps {
     pokemon: {
       id: string;
       name: string;
-      sprite_url?: string;
+      image_url?: string;
       type1: { id: string; name: string };
       type2?: { id: string; name: string };
       base_hp: number;
@@ -23,7 +23,7 @@ interface PokemonCardProps {
     item?: {
       id: string;
       name: string;
-      sprite_url?: string;
+      image_url?: string;
     };
     habilidad?: {
       id: string;
@@ -94,9 +94,9 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
     <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
       {/* Header con imagen y nombre */}
       <div className="flex items-center gap-3 mb-3">
-        {pokemon.pokemon.sprite_url && (
+        {pokemon.pokemon.image_url && (
           <img
-            src={pokemon.pokemon.sprite_url}
+            src={pokemon.pokemon.image_url}
             alt={pokemon.pokemon.name}
             className="w-16 h-16 object-contain"
           />
@@ -124,9 +124,9 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
       <div className="space-y-2 mb-3">
         {pokemon.item && (
           <div className="flex items-center gap-2">
-            {pokemon.item.sprite_url && (
+            {pokemon.item.image_url && (
               <img
-                src={pokemon.item.sprite_url}
+                src={pokemon.item.image_url}
                 alt={pokemon.item.name}
                 className="w-4 h-4 object-contain"
               />

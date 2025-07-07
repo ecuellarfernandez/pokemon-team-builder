@@ -383,7 +383,7 @@ const PokemonExplorer: React.FC = () => {
             <div className="flex items-center gap-6">
               {selectedPokemon.image_url && (
                 <img
-                  src={selectedPokemon.image_url}
+                  src={`${API_CONFIG.BASE_URL}${selectedPokemon.image_url}`}
                   alt={selectedPokemon.name}
                   className="w-32 h-32 object-contain"
                 />

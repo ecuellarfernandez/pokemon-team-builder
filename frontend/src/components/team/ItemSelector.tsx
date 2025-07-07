@@ -7,7 +7,7 @@ import { API_CONFIG } from '../../config/api';
 interface Item {
   id: string;
   name: string;
-  sprite_url?: string;
+  image_url?: string;
   description?: string;
 }
 
@@ -137,9 +137,9 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
                 onClick={() => handleItemSelect(item)}
                 className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-3 border-b border-gray-100 last:border-b-0"
               >
-                {item.sprite_url && (
+                {item.image_url && (
                   <img
-                    src={item.sprite_url}
+                    src={item.image_url}
                     alt={item.name}
                     className="w-6 h-6 object-contain"
                   />
@@ -160,9 +160,9 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
       {selectedItemData && (
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="flex items-center gap-3">
-            {selectedItemData.sprite_url && (
+            {selectedItemData.image_url && (
               <img
-                src={selectedItemData.sprite_url}
+                src={selectedItemData.image_url}
                 alt={selectedItemData.name}
                 className="w-8 h-8 object-contain"
               />

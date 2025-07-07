@@ -32,7 +32,7 @@ interface EquipoPokemon {
   pokemon: {
     id: string;
     name: string;
-    sprite_url?: string;
+    image_url?: string;
     type1: { id: string; name: string };
     type2?: { id: string; name: string };
     base_hp: number;
@@ -45,7 +45,7 @@ interface EquipoPokemon {
   item?: {
     id: string;
     name: string;
-    sprite_url?: string;
+    image_url?: string;
   };
   habilidad?: {
     id: string;
@@ -195,6 +195,9 @@ const EquipoEditor: React.FC = () => {
         const savedEquipo = await response.json();
         toast.success(isEditing ? 'Equipo actualizado' : 'Equipo creado');
         if (!isEditing) {
+          // Actualizar el estado local con el equipo guardado
+          setEquipo(prev => ({ ...prev, id: savedEquipo.id }));
+          // Navegar a la ruta de edición
           navigate(`/dashboard/equipos/${savedEquipo.id}/editar`);
         }
       } else {
@@ -211,6 +214,11 @@ const EquipoEditor: React.FC = () => {
   const openAddPokemonModal = () => {
     if (equipo.equipoPokemons.length >= 6) {
       toast.error('Un equipo no puede tener más de 6 Pokémon');
+      return;
+    }
+    
+    if (!isEditing && !equipo.id) {
+      toast.error('Debes guardar el equipo primero');
       return;
     }
     
@@ -283,7 +291,7 @@ const EquipoEditor: React.FC = () => {
       return;
     }
 
-    if (!isEditing) {
+    if (!isEditing && !equipo.id) {
       toast.error('Debes guardar el equipo primero');
       return;
     }
@@ -311,6 +319,7 @@ const EquipoEditor: React.FC = () => {
         movimiento_ids: pokemonForm.movimientos
       };
 
+      const equipoId = equipo.id || id;
       let response;
       if (editingPokemonIndex !== null) {
         // Actualizar Pokémon existente
@@ -325,7 +334,7 @@ const EquipoEditor: React.FC = () => {
         });
       } else {
         // Agregar nuevo Pokémon
-        response = await fetch(`${API_CONFIG.BASE_URL}/equipo/${id}/pokemon`, {
+        response = await fetch(`${API_CONFIG.BASE_URL}/equipo/${equipoId}/pokemon`, {
           method: 'POST',
           headers: {
             ...getAuthHeaders(),
@@ -455,7 +464,7 @@ const EquipoEditor: React.FC = () => {
           <h2 className="text-xl font-semibold">Pokémon del Equipo ({equipo.equipoPokemons.length}/6)</h2>
           <button
             onClick={openAddPokemonModal}
-            disabled={equipo.equipoPokemons.length >= 6 || !isEditing}
+            disabled={equipo.equipoPokemons.length >= 6 || (!isEditing && !equipo.id)}
             className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <Plus className="h-5 w-5" />
@@ -466,7 +475,7 @@ const EquipoEditor: React.FC = () => {
         {equipo.equipoPokemons.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500 mb-4">No hay Pokémon en este equipo</p>
-            {isEditing && (
+            {(isEditing || equipo.id) && (
               <button
                 onClick={openAddPokemonModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors"
@@ -481,7 +490,7 @@ const EquipoEditor: React.FC = () => {
             {equipo.equipoPokemons.map((pokemon, index) => (
               <div key={pokemon.id} className="relative">
                 <PokemonCard pokemon={pokemon} />
-                {isEditing && (
+                {(isEditing || equipo.id) && (
                   <div className="absolute top-2 right-2 flex gap-1">
                     <button
                       onClick={() => openEditModal(index)}

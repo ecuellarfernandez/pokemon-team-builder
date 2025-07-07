@@ -22,7 +22,7 @@ interface EquipoPokemon {
   pokemon: {
     id: string;
     name: string;
-    sprite_url?: string;
+    image_url?: string;
     type1: { id: string; name: string };
     type2?: { id: string; name: string };
   };
@@ -195,9 +195,9 @@ const EquiposList: React.FC = () => {
                   <div className="flex flex-wrap gap-2">
                     {equipo.equipoPokemons.slice(0, 6).map((equipoPokemon) => (
                       <div key={equipoPokemon.id} className="flex items-center bg-gray-100 rounded-lg p-2">
-                        {equipoPokemon.pokemon.sprite_url && (
+                        {equipoPokemon.pokemon.image_url && (
                           <img
-                            src={equipoPokemon.pokemon.sprite_url}
+                            src={equipoPokemon.pokemon.image_url}
                             alt={equipoPokemon.pokemon.name}
                             className="w-8 h-8 mr-2"
                           />

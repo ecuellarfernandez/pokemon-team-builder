@@ -7,7 +7,7 @@ import { API_CONFIG } from '../../config/api';
 interface Pokemon {
   id: string;
   name: string;
-  sprite_url?: string;
+  image_url?: string;
   type1: { id: string; name: string };
   type2?: { id: string; name: string };
   base_hp: number;
@@ -150,9 +150,9 @@ const PokemonSelector: React.FC<PokemonSelectorProps> = ({
                   onClick={() => handlePokemonSelect(pokemon)}
                   className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-3 border-b border-gray-100 last:border-b-0"
                 >
-                  {pokemon.sprite_url && (
+                  {pokemon.image_url && (
                     <img
-                      src={pokemon.sprite_url}
+                      src={`${API_CONFIG.BASE_URL}${pokemon.image_url}`}
                       alt={pokemon.name}
                       className="w-8 h-8 object-contain"
                     />
@@ -182,9 +182,9 @@ const PokemonSelector: React.FC<PokemonSelectorProps> = ({
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="text-lg font-semibold mb-3">Pokémon Seleccionado</h3>
           <div className="flex items-center gap-4">
-            {selectedPokemonData.sprite_url && (
+            {selectedPokemonData.image_url && (
               <img
-                src={selectedPokemonData.sprite_url}
+                src={selectedPokemonData.image_url}
                 alt={selectedPokemonData.name}
                 className="w-16 h-16 object-contain"
               />
