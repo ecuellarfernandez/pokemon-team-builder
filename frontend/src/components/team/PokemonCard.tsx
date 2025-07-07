@@ -1,4 +1,6 @@
 import React from 'react';
+import { API_CONFIG } from '../../config/api';
+import { calculatePokemonStats, type BaseStats, type EVs, type IVs, type Nature } from '../../utils/pokemonStats';
 
 interface PokemonCardProps {
   pokemon: {
@@ -32,6 +34,8 @@ interface PokemonCardProps {
     naturaleza?: {
       id: string;
       name: string;
+      stat_aumentada?: string;
+      stat_disminuida?: string;
     };
     ev_hp: number;
     ev_atk: number;
@@ -73,22 +77,41 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
     return colors[typeName.toLowerCase()] || 'bg-gray-400';
   };
 
-  const calculateFinalStat = (base: number, iv: number, ev: number, level: number, isHP: boolean = false) => {
-    if (isHP) {
-      return Math.floor(((2 * base + iv + Math.floor(ev / 4)) * level) / 100) + level + 10;
-    } else {
-      return Math.floor(((2 * base + iv + Math.floor(ev / 4)) * level) / 100) + 5;
-    }
+  // Preparar datos para el cálculo de estadísticas
+  const baseStats: BaseStats = {
+    hp: pokemon.pokemon.base_hp,
+    atk: pokemon.pokemon.base_atk,
+    def: pokemon.pokemon.base_def,
+    spa: pokemon.pokemon.base_spa,
+    spd: pokemon.pokemon.base_spd,
+    spe: pokemon.pokemon.base_spe
   };
 
-  const finalStats = {
-    hp: calculateFinalStat(pokemon.pokemon.base_hp, pokemon.iv_hp, pokemon.ev_hp, pokemon.nivel, true),
-    atk: calculateFinalStat(pokemon.pokemon.base_atk, pokemon.iv_atk, pokemon.ev_atk, pokemon.nivel),
-    def: calculateFinalStat(pokemon.pokemon.base_def, pokemon.iv_def, pokemon.ev_def, pokemon.nivel),
-    spa: calculateFinalStat(pokemon.pokemon.base_spa, pokemon.iv_spa, pokemon.ev_spa, pokemon.nivel),
-    spd: calculateFinalStat(pokemon.pokemon.base_spd, pokemon.iv_spd, pokemon.ev_spd, pokemon.nivel),
-    spe: calculateFinalStat(pokemon.pokemon.base_spe, pokemon.iv_spe, pokemon.ev_spe, pokemon.nivel)
+  const ivs: IVs = {
+    hp: pokemon.iv_hp,
+    atk: pokemon.iv_atk,
+    def: pokemon.iv_def,
+    spa: pokemon.iv_spa,
+    spd: pokemon.iv_spd,
+    spe: pokemon.iv_spe
   };
+
+  const evs: EVs = {
+    hp: pokemon.ev_hp,
+    atk: pokemon.ev_atk,
+    def: pokemon.ev_def,
+    spa: pokemon.ev_spa,
+    spd: pokemon.ev_spd,
+    spe: pokemon.ev_spe
+  };
+
+  const nature: Nature | undefined = pokemon.naturaleza ? {
+    stat_aumentada: pokemon.naturaleza.stat_aumentada,
+    stat_disminuida: pokemon.naturaleza.stat_disminuida
+  } : undefined;
+
+  // Calcular estadísticas finales usando la fórmula oficial
+  const finalStats = calculatePokemonStats(baseStats, ivs, evs, pokemon.nivel, nature);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
@@ -96,7 +119,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
       <div className="flex items-center gap-3 mb-3">
         {pokemon.pokemon.image_url && (
           <img
-            src={pokemon.pokemon.image_url}
+            src={`${API_CONFIG.BASE_URL}${pokemon.pokemon.image_url}`}
             alt={pokemon.pokemon.name}
             className="w-16 h-16 object-contain"
           />
@@ -126,7 +149,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
           <div className="flex items-center gap-2">
             {pokemon.item.image_url && (
               <img
-                src={pokemon.item.image_url}
+                src={`${API_CONFIG.BASE_URL}${pokemon.item.image_url}`}
                 alt={pokemon.item.name}
                 className="w-4 h-4 object-contain"
               />

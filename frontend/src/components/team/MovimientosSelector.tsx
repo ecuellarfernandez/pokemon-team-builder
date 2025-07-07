@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
-import { Search, X, Plus } from 'lucide-react';
+import { Search, X, Plus, ChevronDown } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getAuthHeaders } from '../../config/api';
 import { API_CONFIG } from '../../config/api';
@@ -174,25 +174,33 @@ const MovimientosSelector: React.FC<MovimientosSelectorProps> = ({
         
         {selectedMovimientos.length < 4 && (
           <div className="relative mb-3">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setShowDropdown(e.target.value.length > 0 || movimientos.length > 0);
+                }}
+                onFocus={() => setShowDropdown(searchTerm.length > 0 || movimientos.length > 0)}
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder={loading ? "Cargando movimientos..." : "Buscar movimiento..."}
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowDropdown(!showDropdown)}
+                disabled={loading || movimientos.length === 0}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
+              >
+                <ChevronDown className={`h-4 w-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+              </button>
             </div>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setShowDropdown(e.target.value.length > 0);
-              }}
-              onFocus={() => setShowDropdown(searchTerm.length > 0)}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Buscar movimiento..."
-              disabled={loading}
-            />
             
-            {showDropdown && filteredMovimientos.length > 0 && (
+            {showDropdown && !loading && (
               <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                {filteredMovimientos.slice(0, 10).map((movimiento) => (
+                {(searchTerm ? filteredMovimientos : movimientos.filter(m => !selectedMovimientos.includes(m.id))).slice(0, 10).map((movimiento) => (
                   <button
                     key={movimiento.id}
                     onClick={() => handleMovimientoAdd(movimiento)}
@@ -219,6 +227,11 @@ const MovimientosSelector: React.FC<MovimientosSelectorProps> = ({
                     </div>
                   </button>
                 ))}
+                {(searchTerm ? filteredMovimientos : movimientos.filter(m => !selectedMovimientos.includes(m.id))).length === 0 && (
+                  <div className="px-4 py-3 text-gray-500 text-center">
+                    {searchTerm ? `No se encontraron movimientos que coincidan con "${searchTerm}"` : 'No hay movimientos disponibles'}
+                  </div>
+                )}
               </div>
             )}
           </div>

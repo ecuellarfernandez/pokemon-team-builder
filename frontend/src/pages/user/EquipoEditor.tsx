@@ -19,7 +19,6 @@ import { usePokemonValidation } from '../../hooks/usePokemonValidation';
 interface Equipo {
   id?: string;
   name: string;
-  description?: string;
   equipoPokemons: EquipoPokemon[];
 }
 
@@ -99,7 +98,6 @@ const EquipoEditor: React.FC = () => {
 
   const [equipo, setEquipo] = useState<Equipo>({
     name: '',
-    description: '',
     equipoPokemons: []
   });
 
@@ -187,7 +185,6 @@ const EquipoEditor: React.FC = () => {
         },
         body: JSON.stringify({
           name: equipo.name,
-          description: equipo.description
         })
       });
 
@@ -443,18 +440,7 @@ const EquipoEditor: React.FC = () => {
               placeholder="Ingresa el nombre del equipo"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Descripción
-            </label>
-            <input
-              type="text"
-              value={equipo.description || ''}
-              onChange={(e) => setEquipo({ ...equipo, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Descripción opcional"
-            />
-          </div>
+          
         </div>
       </div>
 

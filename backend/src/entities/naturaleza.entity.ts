@@ -9,6 +9,12 @@ export class Naturaleza {
   @Column()
   name: string;
 
+  @Column({ nullable: true })
+  stat_aumentada: string;
+
+  @Column({ nullable: true })
+  stat_disminuida: string;
+
   @OneToMany(() => EquipoPokemon, (equipoPokemon) => equipoPokemon.naturaleza)
   equipoPokemons: EquipoPokemon[];
 }

@@ -2,42 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { getAuthHeaders } from '../../config/api';
 import { API_CONFIG } from '../../config/api';
-
-interface EVs {
-  hp: number;
-  atk: number;
-  def: number;
-  spa: number;
-  spd: number;
-  spe: number;
-}
-
-interface IVs {
-  hp: number;
-  atk: number;
-  def: number;
-  spa: number;
-  spd: number;
-  spe: number;
-}
-
-interface BaseStats {
-  hp: number;
-  atk: number;
-  def: number;
-  spa: number;
-  spd: number;
-  spe: number;
-}
-
-interface FinalStats {
-  hp: number;
-  atk: number;
-  def: number;
-  spa: number;
-  spd: number;
-  spe: number;
-}
+import { 
+  calculatePokemonStats, 
+  validateEVs, 
+  getRemainingEVs, 
+  getStatName, 
+  type BaseStats,
+  type EVs,
+  type IVs,
+  type FinalStats,
+  type Nature
+} from '../../utils/pokemonStats';
 
 interface StatsEditorProps {
   pokemonId: string;
@@ -106,9 +81,9 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
     if (!baseStats) return;
 
     try {
-      // Obtener información de la naturaleza si está disponible
-      const natureModifiers = { atk: 1, def: 1, spa: 1, spd: 1, spe: 1 };
+      let nature: Nature | undefined;
       
+      // Obtener información de la naturaleza si está disponible
       if (natureId) {
         try {
           const response = await fetch(`${API_CONFIG.BASE_URL}/naturaleza/${natureId}`, {
@@ -116,34 +91,19 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
           });
           
           if (response.ok) {
-            const nature = await response.json();
-            // Aplicar modificadores de naturaleza (1.1 para stat aumentada, 0.9 para stat disminuida)
-            if (nature.stat_aumentada && nature.stat_disminuida && nature.stat_aumentada !== nature.stat_disminuida) {
-              natureModifiers[nature.stat_aumentada as keyof typeof natureModifiers] = 1.1;
-              natureModifiers[nature.stat_disminuida as keyof typeof natureModifiers] = 0.9;
-            }
+            nature = await response.json();
           }
         } catch (error) {
           console.error('Error fetching nature:', error);
         }
       }
 
-      // Calcular estadísticas finales usando la fórmula estándar de Pokémon
-      const calculatedStats: FinalStats = {
-        // HP: ((2 * Base + IV + (EV/4)) * Level / 100) + Level + 10
-        hp: Math.floor(((2 * baseStats.hp + ivs.hp + Math.floor(evs.hp / 4)) * nivel / 100) + nivel + 10),
-        
-        // Otras stats: (((2 * Base + IV + (EV/4)) * Level / 100) + 5) * Nature
-        atk: Math.floor((Math.floor((2 * baseStats.atk + ivs.atk + Math.floor(evs.atk / 4)) * nivel / 100) + 5) * natureModifiers.atk),
-        def: Math.floor((Math.floor((2 * baseStats.def + ivs.def + Math.floor(evs.def / 4)) * nivel / 100) + 5) * natureModifiers.def),
-        spa: Math.floor((Math.floor((2 * baseStats.spa + ivs.spa + Math.floor(evs.spa / 4)) * nivel / 100) + 5) * natureModifiers.spa),
-        spd: Math.floor((Math.floor((2 * baseStats.spd + ivs.spd + Math.floor(evs.spd / 4)) * nivel / 100) + 5) * natureModifiers.spd),
-        spe: Math.floor((Math.floor((2 * baseStats.spe + ivs.spe + Math.floor(evs.spe / 4)) * nivel / 100) + 5) * natureModifiers.spe)
-      };
-
+      // Usar la utilidad de cálculo de estadísticas
+      const calculatedStats = calculatePokemonStats(baseStats, ivs, evs, nivel, nature);
       setFinalStats(calculatedStats);
     } catch (error) {
       console.error('Error calculating final stats:', error);
+      toast.error('Error al calcular las estadísticas');
     }
   };
 
@@ -154,9 +114,8 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
   const handleEVChange = (stat: keyof EVs, value: number) => {
     const newValue = Math.max(0, Math.min(252, value));
     const newEVs = { ...evs, [stat]: newValue };
-    const newTotal = Object.values(newEVs).reduce((sum, ev) => sum + ev, 0);
     
-    if (newTotal <= 508) {
+    if (validateEVs(newEVs)) {
       onEVsChange(newEVs);
     } else {
       toast.error('El total de EVs no puede exceder 508');
@@ -170,7 +129,8 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
   };
 
   const setMaxEVs = () => {
-    const maxEVs = { hp: 252, atk: 252, def: 4, spa: 0, spd: 0, spe: 0 };
+    // Distribución estándar: 252/252/6 (dos stats principales + resto)
+    const maxEVs = { hp: 252, atk: 252, def: 6, spa: 0, spd: 0, spe: 0 };
     onEVsChange(maxEVs);
   };
 
@@ -182,15 +142,6 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
   const resetEVs = () => {
     const resetEVs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
     onEVsChange(resetEVs);
-  };
-
-  const statNames = {
-    hp: 'HP',
-    atk: 'Ataque',
-    def: 'Defensa',
-    spa: 'At. Esp.',
-    spd: 'Def. Esp.',
-    spe: 'Velocidad'
   };
 
   const statColors = {
@@ -248,7 +199,7 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
               {(Object.keys(evs) as Array<keyof EVs>).map((stat) => (
                 <div key={stat}>
                   <label className={`block text-sm font-medium mb-1 ${statColors[stat]}`}>
-                    {statNames[stat]}
+                    {getStatName(stat)}
                   </label>
                   <input
                     type="number"
@@ -274,6 +225,7 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
                 {getTotalEVs() > 508 && (
                   <span className="text-red-600">¡Excede el límite de EVs!</span>
                 )}
+                <span className="text-gray-500">EVs restantes: {getRemainingEVs(evs)}</span>
               </div>
             </div>
           </div>
@@ -295,7 +247,7 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
               {(Object.keys(ivs) as Array<keyof IVs>).map((stat) => (
                 <div key={stat}>
                   <label className={`block text-sm font-medium mb-1 ${statColors[stat]}`}>
-                    {statNames[stat]}
+                    {getStatName(stat)}
                   </label>
                   <input
                     type="number"
@@ -320,7 +272,7 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
                 {(Object.keys(finalStats) as Array<keyof FinalStats>).map((stat) => (
                   <div key={stat} className="bg-white rounded-lg p-3 border">
                     <div className={`text-sm font-medium ${statColors[stat]}`}>
-                      {statNames[stat]}
+                      {getStatName(stat)}
                     </div>
                     <div className="text-lg font-bold text-gray-900">
                       {finalStats[stat]}

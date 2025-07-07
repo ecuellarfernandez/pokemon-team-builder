@@ -9,6 +9,8 @@ import ConfirmDialog from '../../components/ui/ConfirmDialog';
 interface Nature {
   id: string;
   name: string;
+  stat_aumentada?: string;
+  stat_disminuida?: string;
 }
 
 const Natures: React.FC = () => {
@@ -24,7 +26,9 @@ const Natures: React.FC = () => {
   
   // Form States
   const [formData, setFormData] = useState({
-    name: ''
+    name: '',
+    stat_aumentada: '',
+    stat_disminuida: ''
   });
   
   // Delete Confirmation States
@@ -84,7 +88,7 @@ const Natures: React.FC = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '' });
+    setFormData({ name: '', stat_aumentada: '', stat_disminuida: '' });
   };
 
   const openCreateModal = () => {
@@ -93,7 +97,11 @@ const Natures: React.FC = () => {
   };
 
   const openEditModal = (nature: Nature) => {
-    setFormData({ name: nature.name });
+    setFormData({ 
+      name: nature.name,
+      stat_aumentada: nature.stat_aumentada || '',
+      stat_disminuida: nature.stat_disminuida || ''
+    });
     setEditingNature(nature);
     setShowEditModal(true);
   };
@@ -112,6 +120,15 @@ const Natures: React.FC = () => {
       toast.error('El nombre es requerido');
       return;
     }
+    
+   
+    
+    // Si solo se selecciona una estadística, limpiar la otra para naturalezas neutrales
+    const finalFormData = {
+      ...formData,
+      stat_aumentada: formData.stat_aumentada || null,
+      stat_disminuida: formData.stat_disminuida || null
+    };
 
     try {
       setIsSubmitting(true);
@@ -124,7 +141,7 @@ const Natures: React.FC = () => {
       const response = await fetch(url, {
         method,
         headers: getAuthHeaders(),
-        body: JSON.stringify(formData)
+        body: JSON.stringify(finalFormData)
       });
 
       if (!response.ok) {
@@ -239,6 +256,12 @@ const Natures: React.FC = () => {
                 Nombre
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Stat Aumentada
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Stat Disminuida
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 ID
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -249,7 +272,7 @@ const Natures: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-200">
             {filteredNatures.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-6 py-8 text-center">
+                <td colSpan={5} className="px-6 py-8 text-center">
                   <div className="flex flex-col items-center">
                     <Heart className="h-12 w-12 text-gray-400 mb-4" />
                     <p className="text-gray-500">No se encontraron naturalezas</p>
@@ -269,6 +292,28 @@ const Natures: React.FC = () => {
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{nature.name}</div>
                       </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">
+                      {nature.stat_aumentada ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          +{nature.stat_aumentada.toUpperCase()}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">Ninguna</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-500">
+                      {nature.stat_disminuida ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          -{nature.stat_disminuida.toUpperCase()}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">Ninguna</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -322,6 +367,46 @@ const Natures: React.FC = () => {
             />
           </div>
           
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="stat_aumentada" className="block text-sm font-medium text-gray-700 mb-1">
+                Estadística Aumentada (+10%)
+              </label>
+              <select
+                id="stat_aumentada"
+                value={formData.stat_aumentada}
+                onChange={(e) => setFormData({ ...formData, stat_aumentada: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Ninguna (Neutral)</option>
+                <option value="atk">Ataque</option>
+                <option value="def">Defensa</option>
+                <option value="spa">Ataque Especial</option>
+                <option value="spd">Defensa Especial</option>
+                <option value="spe">Velocidad</option>
+              </select>
+            </div>
+            
+            <div>
+              <label htmlFor="stat_disminuida" className="block text-sm font-medium text-gray-700 mb-1">
+                Estadística Disminuida (-10%)
+              </label>
+              <select
+                id="stat_disminuida"
+                value={formData.stat_disminuida}
+                onChange={(e) => setFormData({ ...formData, stat_disminuida: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Ninguna (Neutral)</option>
+                <option value="atk">Ataque</option>
+                <option value="def">Defensa</option>
+                <option value="spa">Ataque Especial</option>
+                <option value="spd">Defensa Especial</option>
+                <option value="spe">Velocidad</option>
+              </select>
+            </div>
+          </div>
+          
           <div className="flex justify-end space-x-3 pt-4">
             <button
               type="button"
@@ -362,6 +447,46 @@ const Natures: React.FC = () => {
               placeholder="Ej: Adamant, Modest, Jolly..."
               required
             />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="edit-stat_aumentada" className="block text-sm font-medium text-gray-700 mb-1">
+                Estadística Aumentada (+10%)
+              </label>
+              <select
+                id="edit-stat_aumentada"
+                value={formData.stat_aumentada}
+                onChange={(e) => setFormData({ ...formData, stat_aumentada: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Ninguna (Neutral)</option>
+                <option value="atk">Ataque</option>
+                <option value="def">Defensa</option>
+                <option value="spa">Ataque Especial</option>
+                <option value="spd">Defensa Especial</option>
+                <option value="spe">Velocidad</option>
+              </select>
+            </div>
+            
+            <div>
+              <label htmlFor="edit-stat_disminuida" className="block text-sm font-medium text-gray-700 mb-1">
+                Estadística Disminuida (-10%)
+              </label>
+              <select
+                id="edit-stat_disminuida"
+                value={formData.stat_disminuida}
+                onChange={(e) => setFormData({ ...formData, stat_disminuida: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Ninguna (Neutral)</option>
+                <option value="atk">Ataque</option>
+                <option value="def">Defensa</option>
+                <option value="spa">Ataque Especial</option>
+                <option value="spd">Defensa Especial</option>
+                <option value="spe">Velocidad</option>
+              </select>
+            </div>
           </div>
           
           <div className="flex justify-end space-x-3 pt-4">

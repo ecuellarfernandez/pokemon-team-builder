@@ -184,7 +184,7 @@ const PokemonSelector: React.FC<PokemonSelectorProps> = ({
           <div className="flex items-center gap-4">
             {selectedPokemonData.image_url && (
               <img
-                src={selectedPokemonData.image_url}
+                src={`${API_CONFIG.BASE_URL}${selectedPokemonData.image_url}`}
                 alt={selectedPokemonData.name}
                 className="w-16 h-16 object-contain"
               />

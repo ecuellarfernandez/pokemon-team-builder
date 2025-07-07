@@ -197,7 +197,7 @@ const EquiposList: React.FC = () => {
                       <div key={equipoPokemon.id} className="flex items-center bg-gray-100 rounded-lg p-2">
                         {equipoPokemon.pokemon.image_url && (
                           <img
-                            src={equipoPokemon.pokemon.image_url}
+                            src={`${API_CONFIG.BASE_URL}${equipoPokemon.pokemon.image_url}`}
                             alt={equipoPokemon.pokemon.name}
                             className="w-8 h-8 mr-2"
                           />
@@ -220,9 +220,6 @@ const EquiposList: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-500">
-                  Creado: {new Date(equipo.created_at).toLocaleDateString()}
-                </div>
               </div>
             </div>
           ))}
