@@ -49,9 +49,11 @@ export class MovimientoService {
     id: string,
     updateMovimientoDto: UpdateMovimientoDto,
   ): Promise<Movimiento> {
-    const movimiento = await this.findOne(id);
-    Object.assign(movimiento, updateMovimientoDto);
-    return await this.movimientoRepository.save(movimiento);
+    await this.findOne(id);
+
+    await this.movimientoRepository.update(id, updateMovimientoDto);
+
+    return await this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {

@@ -13,7 +13,7 @@ interface Move {
   power?: number;
   accuracy: number;
   description: string;
-  tipo?: {
+  type?: {
     id: string;
     name: string;
   };
@@ -21,6 +21,10 @@ interface Move {
     id: string;
     name: string;
   };
+  category?:{
+    id: string;
+    name:string;
+  }
   created_at: string;
 }
 
@@ -88,7 +92,7 @@ const Moves: React.FC = () => {
 
   const fetchTypes = async () => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/tipos`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/tipo`, {
         headers: getAuthHeaders()
       });
       
@@ -106,7 +110,7 @@ const Moves: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/categorias-movimiento`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/categoria-movimiento`, {
         headers: getAuthHeaders()
       });
       
@@ -233,17 +237,33 @@ const Moves: React.FC = () => {
     }
   };
 
-  const openEditModal = (move: Move) => {
-    setSelectedMove(move);
-    setFormData({
-      name: move.name,
-      type_id: move.type_id,
-      categoria_id: move.categoria_id,
-      power: move.power,
-      accuracy: move.accuracy,
-      description: move.description
-    });
-    setShowEditModal(true);
+  const openEditModal = async (move: Move) => {
+    try {
+      // Fetch fresh data from backend to ensure we have complete move data
+      const response = await fetch(`${API_CONFIG.BASE_URL}/movimiento/${move.id}`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al cargar datos del movimiento');
+      }
+      
+      const freshMoveData = await response.json();
+      
+      setSelectedMove(freshMoveData);
+      setFormData({
+        name: freshMoveData.name,
+        type_id: freshMoveData.type_id,
+        categoria_id: freshMoveData.categoria_id,
+        power: freshMoveData.power,
+        accuracy: freshMoveData.accuracy,
+        description: freshMoveData.description
+      });
+      setShowEditModal(true);
+    } catch (error) {
+      console.error('Error fetching move data:', error);
+      toast.error('Error al cargar datos del movimiento');
+    }
   };
 
   const resetForm = () => {
@@ -347,10 +367,10 @@ const Moves: React.FC = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {move.tipo?.name || 'N/A'}
+                  {move.type?.name || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {move.categoria?.name || 'N/A'}
+                  {move.category?.name || 'N/A'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {move.power || 'N/A'}
