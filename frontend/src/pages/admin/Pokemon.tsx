@@ -363,12 +363,12 @@ const PokemonAdmin: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredPokemon.map((poke) => (
           <div key={poke.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="h-48 bg-gray-200 flex items-center justify-center">
+            <div className="h-70 bg-gray-200 flex items-center justify-center">
               {poke.image_url ? (
                 <img
                   src={`${API_CONFIG.BASE_URL}${poke.image_url}`}
                   alt={poke.name}
-                  className="h-full w-full object-cover"
+                  className="select-none h-full w-full object-cover"
                 />
               ) : (
                 <PokemonIcon className="h-16 w-16 text-gray-400" />
