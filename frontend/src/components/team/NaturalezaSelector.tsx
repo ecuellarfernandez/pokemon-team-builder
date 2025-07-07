@@ -7,8 +7,8 @@ import { API_CONFIG } from '../../config/api';
 interface Naturaleza {
   id: string;
   name: string;
-  increased_stat?: string;
-  decreased_stat?: string;
+  stat_aumentada?: string;
+  stat_disminuida?: string;
 }
 
 interface NaturalezaSelectorProps {
@@ -115,15 +115,15 @@ const NaturalezaSelector: React.FC<NaturalezaSelectorProps> = ({
   };
 
   const getNatureEffect = (naturaleza: Naturaleza) => {
-    if (!naturaleza.increased_stat || !naturaleza.decreased_stat) {
+    if (!naturaleza.stat_aumentada || !naturaleza.stat_disminuida) {
       return 'Neutral';
     }
     
-    if (naturaleza.increased_stat === naturaleza.decreased_stat) {
+    if (naturaleza.stat_aumentada === naturaleza.stat_disminuida) {
       return 'Neutral';
     }
     
-    return `+${getStatDisplayName(naturaleza.increased_stat)} / -${getStatDisplayName(naturaleza.decreased_stat)}`;
+    return `+${getStatDisplayName(naturaleza.stat_aumentada)} / -${getStatDisplayName(naturaleza.stat_disminuida)}`;
   };
 
   return (
