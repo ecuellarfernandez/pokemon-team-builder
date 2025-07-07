@@ -130,7 +130,7 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
 
   const setMaxEVs = () => {
     // Distribución estándar: 252/252/6 (dos stats principales + resto)
-    const maxEVs = { hp: 252, atk: 252, def: 6, spa: 0, spd: 0, spe: 0 };
+    const maxEVs = { hp: 252, atk: 252, def: 4, spa: 0, spd: 0, spe: 0 };
     onEVsChange(maxEVs);
   };
 
@@ -145,12 +145,16 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
   };
 
   const statColors = {
-    hp: 'text-red-600',
-    atk: 'text-orange-600',
-    def: 'text-yellow-600',
-    spa: 'text-blue-600',
-    spd: 'text-green-600',
-    spe: 'text-purple-600'
+    hp: { text: 'text-red-600', bg: 'bg-red-500', light: 'bg-red-100' },
+    atk: { text: 'text-orange-600', bg: 'bg-orange-500', light: 'bg-orange-100' },
+    def: { text: 'text-yellow-600', bg: 'bg-yellow-500', light: 'bg-yellow-100' },
+    spa: { text: 'text-blue-600', bg: 'bg-blue-500', light: 'bg-blue-100' },
+    spd: { text: 'text-green-600', bg: 'bg-green-500', light: 'bg-green-100' },
+    spe: { text: 'text-purple-600', bg: 'bg-purple-500', light: 'bg-purple-100' }
+  };
+
+  const getStatBarWidth = (value: number, maxValue: number = 255) => {
+    return Math.min(100, (value / maxValue) * 100);
   };
 
   if (!pokemonId) {
@@ -173,118 +177,138 @@ const StatsEditor: React.FC<StatsEditorProps> = ({
           <div className="animate-pulse text-gray-500">Cargando estadísticas...</div>
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* EVs */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h4 className="font-medium text-gray-900">
-                EVs (Effort Values) - Total: {getTotalEVs()}/508
-              </h4>
-              <div className="flex gap-2">
-                <button
-                  onClick={resetEVs}
-                  className="text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
-                >
-                  Resetear
-                </button>
-                <button
-                  onClick={setMaxEVs}
-                  className="text-xs px-2 py-1 bg-blue-200 hover:bg-blue-300 rounded transition-colors"
-                >
-                  Configuración típica
-                </button>
-              </div>
+        <div className="space-y-4">
+          {/* Botones de control */}
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-600">
+              EVs Total: {getTotalEVs()}/508
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {(Object.keys(evs) as Array<keyof EVs>).map((stat) => (
-                <div key={stat}>
-                  <label className={`block text-sm font-medium mb-1 ${statColors[stat]}`}>
-                    {getStatName(stat)}
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="252"
-                    value={evs[stat]}
-                    onChange={(e) => handleEVChange(stat, parseInt(e.target.value) || 0)}
-                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="mt-2">
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className={`h-2 rounded-full transition-all ${
-                    getTotalEVs() > 508 ? 'bg-red-500' : 'bg-blue-500'
-                  }`}
-                  style={{ width: `${Math.min(100, (getTotalEVs() / 508) * 100)}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-600 mt-1">
-                {getTotalEVs() > 508 && (
-                  <span className="text-red-600">¡Excede el límite de EVs!</span>
-                )}
-                <span className="text-gray-500">EVs restantes: {getRemainingEVs(evs)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* IVs */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h4 className="font-medium text-gray-900">
-                IVs (Individual Values)
-              </h4>
+            <div className="flex gap-2">
+              <button
+                onClick={resetEVs}
+                className="text-xs px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+              >
+                Reset EVs
+              </button>
+              <button
+                onClick={setMaxEVs}
+                className="text-xs px-2 py-1 bg-blue-200 hover:bg-blue-300 rounded transition-colors"
+              >
+                Max EVs
+              </button>
               <button
                 onClick={setMaxIVs}
                 className="text-xs px-2 py-1 bg-green-200 hover:bg-green-300 rounded transition-colors"
               >
-                Máximo (31)
+                Max IVs
               </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {(Object.keys(ivs) as Array<keyof IVs>).map((stat) => (
-                <div key={stat}>
-                  <label className={`block text-sm font-medium mb-1 ${statColors[stat]}`}>
-                    {getStatName(stat)}
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="31"
-                    value={ivs[stat]}
-                    onChange={(e) => handleIVChange(stat, parseInt(e.target.value) || 0)}
-                    className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              ))}
             </div>
           </div>
 
-          {/* Estadísticas finales */}
-          {finalStats && baseStats && (
-            <div>
-              <h4 className="font-medium text-gray-900 mb-3">
-                Estadísticas Finales (Nivel {nivel})
-              </h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {(Object.keys(finalStats) as Array<keyof FinalStats>).map((stat) => (
-                  <div key={stat} className="bg-white rounded-lg p-3 border">
-                    <div className={`text-sm font-medium ${statColors[stat]}`}>
+          {/* Tabla de estadísticas */}
+          {baseStats && finalStats && (
+            <div className="bg-white rounded-lg border overflow-hidden">
+              <div className="grid grid-cols-5 gap-2 p-3 bg-gray-50 border-b text-xs font-medium text-gray-700">
+                <div></div>
+                <div className="text-center">Base</div>
+                <div className="text-center">EVs</div>
+                <div className="text-center">IVs</div>
+                <div className="text-center">Total</div>
+              </div>
+              
+              {(Object.keys(baseStats) as Array<keyof BaseStats>).map((stat) => (
+                <div key={stat} className="grid grid-cols-5 gap-2 p-3 border-b last:border-b-0 items-center">
+                  {/* Nombre de la estadística */}
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium ${statColors[stat].text}`}>
                       {getStatName(stat)}
-                    </div>
-                    <div className="text-lg font-bold text-gray-900">
-                      {finalStats[stat]}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Base: {baseStats[stat]}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {baseStats[stat]}
+                    </span>
+                  </div>
+                  
+                  {/* Barra de estadística base */}
+                  <div className="flex items-center">
+                    <div className="w-full bg-gray-200 rounded-full h-3 relative">
+                      <div 
+                        className={`h-3 rounded-full ${statColors[stat].bg}`}
+                        style={{ width: `${getStatBarWidth(baseStats[stat])}%` }}
+                      ></div>
                     </div>
                   </div>
-                ))}
-              </div>
+                  
+                  {/* Input EVs */}
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      min="0"
+                      max="252"
+                      value={evs[stat]}
+                      onChange={(e) => handleEVChange(stat, parseInt(e.target.value) || 0)}
+                      className="w-16 px-2 py-1 border border-gray-300 rounded text-xs text-center focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {evs[stat] > 0 && (
+                      <div className="ml-2 w-8 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="h-2 rounded-full bg-blue-500"
+                          style={{ width: `${(evs[stat] / 252) * 100}%` }}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Input IVs */}
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      min="0"
+                      max="31"
+                      value={ivs[stat]}
+                      onChange={(e) => handleIVChange(stat, parseInt(e.target.value) || 0)}
+                      className="w-12 px-2 py-1 border border-gray-300 rounded text-xs text-center focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    {ivs[stat] > 0 && (
+                      <div className="ml-2 w-6 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="h-2 rounded-full bg-green-500"
+                          style={{ width: `${(ivs[stat] / 31) * 100}%` }}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Estadística final */}
+                  <div className="text-center">
+                    <span className="text-lg font-bold text-gray-900">
+                      {finalStats[stat]}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
+          
+          {/* Barra de progreso de EVs */}
+          <div className="mt-3">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all ${
+                  getTotalEVs() > 508 ? 'bg-red-500' : 'bg-blue-500'
+                }`}
+                style={{ width: `${Math.min(100, (getTotalEVs() / 508) * 100)}%` }}
+              ></div>
+            </div>
+            <div className="text-xs text-gray-600 mt-1 flex justify-between">
+              <span>
+                {getTotalEVs() > 508 && (
+                  <span className="text-red-600">¡Excede el límite de EVs! </span>
+                )}
+                EVs restantes: {getRemainingEVs(evs)}
+              </span>
+              <span>{getTotalEVs()}/508</span>
+            </div>
+          </div>
         </div>
       )}
     </div>

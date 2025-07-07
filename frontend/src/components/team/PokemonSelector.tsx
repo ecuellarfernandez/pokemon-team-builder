@@ -21,15 +21,18 @@ interface Pokemon {
 interface PokemonSelectorProps {
   selectedPokemon: string;
   onPokemonSelect: (pokemonId: string, pokemon?: Pokemon) => void;
+  excludePokemonIds?: string[]; // IDs de Pokémon que ya están en el equipo
 }
 
 const PokemonSelector: React.FC<PokemonSelectorProps> = ({
   selectedPokemon,
-  onPokemonSelect
+  onPokemonSelect,
+  excludePokemonIds = []
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [pokemons, setPokemons] = useState<Pokemon[]>([]);
   const [filteredPokemons, setFilteredPokemons] = useState<Pokemon[]>([]);
+  const [availablePokemons, setAvailablePokemons] = useState<Pokemon[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedPokemonData, setSelectedPokemonData] = useState<Pokemon | null>(null);
@@ -49,15 +52,21 @@ const PokemonSelector: React.FC<PokemonSelectorProps> = ({
   }, [selectedPokemon, pokemons]);
 
   useEffect(() => {
+    // Filtrar Pokémon que no están en el equipo
+    const available = pokemons.filter(pokemon => 
+      !excludePokemonIds.includes(pokemon.id)
+    );
+    setAvailablePokemons(available);
+
     if (searchTerm.trim()) {
-      const filtered = pokemons.filter(pokemon =>
+      const filtered = available.filter(pokemon =>
         pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredPokemons(filtered);
     } else {
       setFilteredPokemons([]);
     }
-  }, [searchTerm, pokemons]);
+  }, [searchTerm, pokemons, excludePokemonIds]);
 
   const fetchPokemons = async () => {
     setLoading(true);
@@ -124,6 +133,45 @@ const PokemonSelector: React.FC<PokemonSelectorProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Pokémon sugeridos */}
+      {!searchTerm && availablePokemons.length > 0 && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Pokémon Sugeridos
+          </label>
+          <div className="grid grid-cols-1 gap-2 mb-4">
+            {availablePokemons.slice(0, 3).map((pokemon) => (
+              <button
+                key={pokemon.id}
+                onClick={() => handlePokemonSelect(pokemon)}
+                className="w-full px-4 py-3 text-left hover:bg-gray-100 flex items-center gap-3 border border-gray-200 rounded-lg transition-colors"
+              >
+                {pokemon.image_url && (
+                  <img
+                    src={`${API_CONFIG.BASE_URL}${pokemon.image_url}`}
+                    alt={pokemon.name}
+                    className="w-10 h-10 object-contain"
+                  />
+                )}
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">{pokemon.name}</div>
+                  <div className="flex gap-1 mt-1">
+                    <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(pokemon.type1.name)}`}>
+                      {pokemon.type1.name}
+                    </span>
+                    {pokemon.type2 && (
+                      <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(pokemon.type2.name)}`}>
+                        {pokemon.type2.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Buscar Pokémon *

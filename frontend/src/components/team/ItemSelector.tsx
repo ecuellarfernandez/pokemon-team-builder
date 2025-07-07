@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getAuthHeaders } from '../../config/api';
 import { API_CONFIG } from '../../config/api';
@@ -20,9 +20,7 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
   selectedItem,
   onItemSelect
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [items, setItems] = useState<Item[]>([]);
-  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedItemData, setSelectedItemData] = useState<Item | null>(null);
@@ -35,25 +33,10 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
     if (selectedItem && items.length > 0) {
       const item = items.find(i => i.id === selectedItem);
       setSelectedItemData(item || null);
-      if (item) {
-        setSearchTerm(item.name);
-      }
     } else if (!selectedItem) {
       setSelectedItemData(null);
-      setSearchTerm('');
     }
   }, [selectedItem, items]);
-
-  useEffect(() => {
-    if (searchTerm.trim()) {
-      const filtered = items.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredItems(filtered);
-    } else {
-      setFilteredItems([]);
-    }
-  }, [searchTerm, items]);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -76,29 +59,14 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
     }
   };
 
-  const handleItemSelect = (item: Item) => {
-    setSearchTerm(item.name);
+  const handleItemSelect = (item: Item | null) => {
     setSelectedItemData(item);
     setShowDropdown(false);
-    onItemSelect(item.id);
+    onItemSelect(item ? item.id : '');
   };
 
-  const handleClearSelection = () => {
-    setSearchTerm('');
-    setSelectedItemData(null);
-    setShowDropdown(false);
-    onItemSelect('');
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    setShowDropdown(value.length > 0);
-    
-    if (!value) {
-      setSelectedItemData(null);
-      onItemSelect('');
-    }
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
   };
 
   return (
@@ -107,35 +75,58 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
         Ítem
       </label>
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
-        </div>
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          onFocus={() => setShowDropdown(searchTerm.length > 0)}
-          className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Buscar ítem..."
+        <button
+          onClick={toggleDropdown}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-left flex items-center justify-between"
           disabled={loading}
-        />
+        >
+          <div className="flex items-center gap-3">
+            {selectedItemData ? (
+              <>
+                {selectedItemData.image_url && (
+                  <img
+                    src={`${API_CONFIG.BASE_URL}${selectedItemData.image_url}`}
+                    alt={selectedItemData.name}
+                    className="w-6 h-6 object-contain"
+                  />
+                )}
+                <span className="text-gray-900">{selectedItemData.name}</span>
+              </>
+            ) : (
+              <span className="text-gray-500">Seleccionar ítem...</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {selectedItemData && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleItemSelect(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
+          </div>
+        </button>
         
-        {selectedItemData && (
-          <button
-            onClick={handleClearSelection}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        )}
-        
-        {showDropdown && filteredItems.length > 0 && (
+        {showDropdown && (
           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-            {filteredItems.slice(0, 10).map((item) => (
+            <button
+              onClick={() => handleItemSelect(null)}
+              className="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-500 border-b border-gray-100"
+            >
+              Sin ítem
+            </button>
+            {items.map((item) => (
               <button
                 key={item.id}
                 onClick={() => handleItemSelect(item)}
-                className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-3 border-b border-gray-100 last:border-b-0"
+                className={`w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-3 border-b border-gray-100 last:border-b-0 ${
+                  selectedItemData?.id === item.id ? 'bg-blue-50' : ''
+                }`}
               >
                 {item.image_url && (
                   <img

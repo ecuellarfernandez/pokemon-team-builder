@@ -194,8 +194,8 @@ const EquipoEditor: React.FC = () => {
         if (!isEditing) {
           // Actualizar el estado local con el equipo guardado
           setEquipo(prev => ({ ...prev, id: savedEquipo.id }));
-          // Navegar a la ruta de edición
-          navigate(`/dashboard/equipos/${savedEquipo.id}/editar`);
+          // Navegar a la ruta de edición con replace para evitar problemas de navegación
+          navigate(`/dashboard/equipos/${savedEquipo.id}/editar`, { replace: true });
         }
       } else {
         toast.error('Error al guardar el equipo');
@@ -214,8 +214,8 @@ const EquipoEditor: React.FC = () => {
       return;
     }
     
-    if (!isEditing && !equipo.id) {
-      toast.error('Debes guardar el equipo primero');
+    if (!equipo.id) {
+      toast.error('Debes guardar el equipo primero antes de agregar Pokémon');
       return;
     }
     
@@ -288,8 +288,8 @@ const EquipoEditor: React.FC = () => {
       return;
     }
 
-    if (!isEditing && !equipo.id) {
-      toast.error('Debes guardar el equipo primero');
+    if (!equipo.id) {
+      toast.error('Debes guardar el equipo primero antes de agregar Pokémon');
       return;
     }
 
@@ -450,7 +450,7 @@ const EquipoEditor: React.FC = () => {
           <h2 className="text-xl font-semibold">Pokémon del Equipo ({equipo.equipoPokemons.length}/6)</h2>
           <button
             onClick={openAddPokemonModal}
-            disabled={equipo.equipoPokemons.length >= 6 || (!isEditing && !equipo.id)}
+            disabled={equipo.equipoPokemons.length >= 6 || !equipo.id}
             className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <Plus className="h-5 w-5" />
@@ -461,7 +461,7 @@ const EquipoEditor: React.FC = () => {
         {equipo.equipoPokemons.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500 mb-4">No hay Pokémon en este equipo</p>
-            {(isEditing || equipo.id) && (
+            {equipo.id && (
               <button
                 onClick={openAddPokemonModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 transition-colors"
@@ -470,13 +470,18 @@ const EquipoEditor: React.FC = () => {
                 Agregar Primer Pokémon
               </button>
             )}
+            {!equipo.id && (
+              <p className="text-gray-500 text-sm mt-2">
+                Guarda el equipo primero para poder agregar Pokémon
+              </p>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {equipo.equipoPokemons.map((pokemon, index) => (
               <div key={pokemon.id} className="relative">
                 <PokemonCard pokemon={pokemon} />
-                {(isEditing || equipo.id) && (
+                {equipo.id && (
                   <div className="absolute top-2 right-2 flex gap-1">
                     <button
                       onClick={() => openEditModal(index)}
@@ -511,6 +516,10 @@ const EquipoEditor: React.FC = () => {
           {/* Selector de Pokémon */}
           <PokemonSelector
             selectedPokemon={pokemonForm.pokemon_id}
+            excludePokemonIds={equipo.equipoPokemons
+              .filter((_, index) => index !== editingPokemonIndex)
+              .map(ep => ep.pokemon_id)
+            }
             onPokemonSelect={(pokemonId, pokemon) => {
               setPokemonForm({
               ...pokemonForm,
