@@ -93,7 +93,7 @@ interface PokemonForm {
 const EquipoEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isEditing = id !== 'nuevo';
+  const isEditing = id !== 'nuevo' ? true : false;
   const { validateAndShowErrors } = usePokemonValidation();
 
   const [equipo, setEquipo] = useState<Equipo>({
