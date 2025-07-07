@@ -381,9 +381,9 @@ const PokemonExplorer: React.FC = () => {
         {selectedPokemon && (
           <div className="space-y-6">
             <div className="flex items-center gap-6">
-              {selectedPokemon.sprite_url && (
+              {selectedPokemon.image_url && (
                 <img
-                  src={selectedPokemon.sprite_url}
+                  src={selectedPokemon.image_url}
                   alt={selectedPokemon.name}
                   className="w-32 h-32 object-contain"
                 />

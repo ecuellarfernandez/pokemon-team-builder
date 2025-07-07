@@ -4,9 +4,9 @@ interface PokemonCardProps {
   pokemon: {
     id: string;
     pokemon_id: string;
-    apodo: string;
+    nickname: string;
     nivel: number;
-    movimientos: string[];
+    equipoPokemonMovimientos: { movimiento: { id: string; name: string } }[];
     pokemon: {
       id: string;
       name: string;
@@ -102,7 +102,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
           />
         )}
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-gray-900">{pokemon.apodo}</h3>
+          <h3 className="text-lg font-bold text-gray-900">{pokemon.nickname}</h3>
           <p className="text-sm text-gray-600">{pokemon.pokemon.name}</p>
           <p className="text-sm text-gray-500">Nivel {pokemon.nivel}</p>
         </div>
@@ -178,11 +178,15 @@ const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
       </div>
 
       {/* Movimientos */}
-      {pokemon.movimientos && pokemon.movimientos.length > 0 && (
+      {pokemon.equipoPokemonMovimientos && pokemon.equipoPokemonMovimientos.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-900 mb-2">Movimientos</h4>
-          <div className="text-xs text-gray-600">
-            {pokemon.movimientos.length} movimiento{pokemon.movimientos.length !== 1 ? 's' : ''} configurado{pokemon.movimientos.length !== 1 ? 's' : ''}
+          <div className="space-y-1">
+            {pokemon.equipoPokemonMovimientos.map((epm, index) => (
+              <div key={index} className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                {epm.movimiento.name}
+              </div>
+            ))}
           </div>
         </div>
       )}

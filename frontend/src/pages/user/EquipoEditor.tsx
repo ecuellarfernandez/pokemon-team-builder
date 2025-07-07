@@ -26,9 +26,9 @@ interface Equipo {
 interface EquipoPokemon {
   id: string;
   pokemon_id: string;
-  apodo: string;
+  nickname: string;
   nivel: number;
-  movimientos: string[];
+  equipoPokemonMovimientos: { movimiento: { id: string; name: string } }[];
   pokemon: {
     id: string;
     name: string;
@@ -71,7 +71,7 @@ interface EquipoPokemon {
 
 interface PokemonForm {
   pokemon_id: string;
-  apodo: string;
+  nickname: string;
   nivel: number;
   movimientos: string[];
   item_id: string;
@@ -112,7 +112,7 @@ const EquipoEditor: React.FC = () => {
 
   const [pokemonForm, setPokemonForm] = useState<PokemonForm>({
     pokemon_id: '',
-    apodo: '',
+    nickname: '',
     nivel: 100,
     movimientos: [],
     item_id: '',
@@ -216,7 +216,7 @@ const EquipoEditor: React.FC = () => {
     
     setPokemonForm({
       pokemon_id: '',
-      apodo: '',
+      nickname: '',
       nivel: 100,
       movimientos: [],
       item_id: '',
@@ -243,9 +243,9 @@ const EquipoEditor: React.FC = () => {
     const pokemon = equipo.equipoPokemons[index];
     setPokemonForm({
       pokemon_id: pokemon.pokemon_id,
-      apodo: pokemon.apodo,
+      nickname: pokemon.nickname,
       nivel: pokemon.nivel,
-      movimientos: pokemon.movimientos,
+      movimientos: pokemon.equipoPokemonMovimientos?.map(epm => epm.movimiento.id) || [],
       item_id: pokemon.item?.id || '',
       habilidad_id: pokemon.habilidad?.id || '',
       nature_id: pokemon.naturaleza?.id || '',
@@ -278,8 +278,8 @@ const EquipoEditor: React.FC = () => {
       return;
     }
 
-    if (!pokemonForm.apodo.trim()) {
-      toast.error('El apodo es requerido');
+    if (!pokemonForm.nickname.trim()) {
+      toast.error('El nickname es requerido');
       return;
     }
 
@@ -294,7 +294,7 @@ const EquipoEditor: React.FC = () => {
         item_id: pokemonForm.item_id || '',
         habilidad_id: pokemonForm.habilidad_id || '',
         nature_id: pokemonForm.nature_id || '',
-        nickname: pokemonForm.apodo,
+        nickname: pokemonForm.nickname,
         nivel: pokemonForm.nivel,
         ev_hp: pokemonForm.ev_hp,
         ev_atk: pokemonForm.ev_atk,
@@ -315,7 +315,7 @@ const EquipoEditor: React.FC = () => {
       if (editingPokemonIndex !== null) {
         // Actualizar Pokémon existente
         const pokemonId = equipo.equipoPokemons[editingPokemonIndex].id;
-        response = await fetch(`${API_CONFIG.BASE_URL}/equipo/${id}/pokemon/${pokemonId}`, {
+        response = await fetch(`${API_CONFIG.BASE_URL}/equipo/pokemon/${pokemonId}`, {
           method: 'PATCH',
           headers: {
             ...getAuthHeaders(),
@@ -354,7 +354,7 @@ const EquipoEditor: React.FC = () => {
 
     try {
       const pokemonId = equipo.equipoPokemons[pokemonToDelete].id;
-      const response = await fetch(`${API_CONFIG.BASE_URL}/equipo/${id}/pokemon/${pokemonId}`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/equipo/pokemon/${pokemonId}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
@@ -518,10 +518,10 @@ const EquipoEditor: React.FC = () => {
             selectedPokemon={pokemonForm.pokemon_id}
             onPokemonSelect={(pokemonId, pokemon) => {
               setPokemonForm({
-                ...pokemonForm,
-                pokemon_id: pokemonId,
-                apodo: pokemon?.name || ''
-              });
+              ...pokemonForm,
+              pokemon_id: pokemonId,
+              nickname: pokemon?.name || ''
+            });
             }}
           />
 
@@ -539,14 +539,14 @@ const EquipoEditor: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Apodo *
+                    Nickname *
                   </label>
                   <input
                     type="text"
-                    value={pokemonForm.apodo}
-                    onChange={(e) => setPokemonForm({ ...pokemonForm, apodo: e.target.value })}
+                    value={pokemonForm.nickname}
+                    onChange={(e) => setPokemonForm({ ...pokemonForm, nickname: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Apodo del Pokémon"
+                    placeholder="Nickname del Pokémon"
                   />
                 </div>
                 <div>
