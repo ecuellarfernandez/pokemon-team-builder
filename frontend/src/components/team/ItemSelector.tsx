@@ -139,7 +139,7 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
               >
                 {item.image_url && (
                   <img
-                    src={item.image_url}
+                    src={`${API_CONFIG.BASE_URL}${item.image_url}`}
                     alt={item.name}
                     className="w-6 h-6 object-contain"
                   />
@@ -162,7 +162,7 @@ const ItemSelector: React.FC<ItemSelectorProps> = ({
           <div className="flex items-center gap-3">
             {selectedItemData.image_url && (
               <img
-                src={selectedItemData.image_url}
+                src={`${API_CONFIG.BASE_URL}${selectedItemData.image_url}`}
                 alt={selectedItemData.name}
                 className="w-8 h-8 object-contain"
               />

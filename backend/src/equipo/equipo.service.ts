@@ -49,6 +49,8 @@ export class EquipoService {
       relations: [
         'equipoPokemons',
         'equipoPokemons.pokemon',
+        'equipoPokemons.pokemon.type1',
+        'equipoPokemons.pokemon.type2',
         'equipoPokemons.item',
         'equipoPokemons.habilidad',
         'equipoPokemons.naturaleza',
@@ -291,6 +293,8 @@ export class EquipoService {
         'naturaleza',
         'equipoPokemonMovimientos',
         'equipoPokemonMovimientos.movimiento',
+        'equipoPokemonMovimientos.movimiento.categoria',
+        'equipoPokemonMovimientos.movimiento.tipo',
       ],
     });
 

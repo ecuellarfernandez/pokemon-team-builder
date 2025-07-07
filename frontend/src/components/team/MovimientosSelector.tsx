@@ -9,11 +9,11 @@ import { usePokemonValidation } from '../../hooks/usePokemonValidation';
 interface Movimiento {
   id: string;
   name: string;
-  type: { id: string; name: string };
-  category: string;
+  tipo: { id: string; name: string };
+  categoria: { id: string; name: string };
   power?: number;
   accuracy?: number;
-  pp: number;
+  pp?: number;
   description?: string;
 }
 
@@ -202,11 +202,11 @@ const MovimientosSelector: React.FC<MovimientosSelectorProps> = ({
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{movimiento.name}</div>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(movimiento.type.name)}`}>
-                            {movimiento.type.name}
+                          <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(movimiento.tipo.name)}`}>
+                            {movimiento.tipo.name}
                           </span>
-                          <span className={`text-xs font-medium ${getCategoryColor(movimiento.category)}`}>
-                            {getCategoryName(movimiento.category)}
+                          <span className={`text-xs font-medium ${getCategoryColor(movimiento.categoria.name)}`}>
+                            {getCategoryName(movimiento.categoria.name)}
                           </span>
                           {movimiento.power && (
                             <span className="text-xs text-gray-600">
@@ -237,13 +237,13 @@ const MovimientosSelector: React.FC<MovimientosSelectorProps> = ({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-medium text-gray-900">{movimiento.name}</span>
-                  <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(movimiento.type.name)}`}>
-                    {movimiento.type.name}
+                  <span className={`px-2 py-1 text-xs text-white rounded ${getTypeColor(movimiento.tipo.name)}`}>
+                    {movimiento.tipo.name}
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span className={`font-medium ${getCategoryColor(movimiento.category)}`}>
-                    {getCategoryName(movimiento.category)}
+                  <span className={`font-medium ${getCategoryColor(movimiento.categoria.name)}`}>
+                    {getCategoryName(movimiento.categoria.name)}
                   </span>
                   {movimiento.power && (
                     <span>Poder: {movimiento.power}</span>
@@ -251,7 +251,9 @@ const MovimientosSelector: React.FC<MovimientosSelectorProps> = ({
                   {movimiento.accuracy && (
                     <span>Precisión: {movimiento.accuracy}%</span>
                   )}
-                  <span>PP: {movimiento.pp}</span>
+                  {movimiento.pp && (
+                    <span>PP: {movimiento.pp}</span>
+                  )}
                 </div>
                 {movimiento.description && (
                   <div className="text-sm text-gray-500 mt-1">
