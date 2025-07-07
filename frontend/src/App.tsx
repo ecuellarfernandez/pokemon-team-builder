@@ -14,6 +14,9 @@ import Items from './pages/admin/Items';
 import Types from './pages/admin/Types';
 import Natures from './pages/admin/Natures';
 import Categories from './pages/admin/Categories';
+import Abilities from './pages/admin/Abilities';
+import Moves from './pages/admin/Moves';
+import Pokemon from './pages/admin/Pokemon';
 
 function App() {
   return (
@@ -37,10 +40,10 @@ function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="usuarios" element={<Users />} />
               {/* Placeholder routes for other modules */}
-              <Route path="pokemon" element={<PlaceholderPage title="Modulo Pokemon" />} />
-              <Route path="movimientos" element={<PlaceholderPage title="Modulo Movimientos" />} />
+              <Route path="pokemon" element={<Pokemon />} />
+              <Route path="movimientos" element={<Moves />} />
               <Route path="items" element={<Items />} />
-              <Route path="habilidades" element={<PlaceholderPage title="Modulo Habilidades" />} />
+              <Route path="habilidades" element={<Abilities />} />
               <Route path="tipos" element={<Types />} />
               <Route path="naturalezas" element={<Natures />} />
               <Route path="categorias" element={<Categories />} />
